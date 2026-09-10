@@ -52,7 +52,7 @@ button, input, textarea, select { font: inherit; }
 .intro-art span:nth-child(2) { background: var(--signal); }
 .intro-art span:nth-child(3) { background: var(--ink); }
 .gallery-intro h1 { margin: 0; font-size: clamp(2.25rem, 5.5vw, 5rem); line-height: 1.12; letter-spacing: -.045em; font-weight: 400; }
-.gallery-intro h1 em { color: #526f00; font-family: Georgia, serif; font-weight: 400; }
+.gallery-intro h1 em { color: #526f00; font-style: normal; font-weight: 400; }
 :root[data-theme='dark'] .gallery-intro h1 em { color: var(--signal); }
 .intro-copy { max-width: 27rem; margin: .65rem 0 0; color: var(--subtle); font-size: 1.05rem; line-height: 1.55; }
 .concept-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); }
