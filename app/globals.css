@@ -1,6 +1,4 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
-@import 'shadcn/tailwind.css';
 
 :root {
   --ink: #11130f;
@@ -41,17 +39,21 @@ button, input, textarea, select { font: inherit; }
 .header-orbit::before, .header-orbit i { position: absolute; top: 50%; width: .42rem; height: .42rem; border-radius: 50%; background: var(--signal); content: ''; transform: translateY(-50%); }
 .header-orbit::before { left: .4rem; }
 .header-orbit i { right: .4rem; background: var(--ink); }
-.theme-toggle { width: 2.25rem; height: 2.25rem; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); background: transparent; }
-.theme-toggle:hover { background: var(--soft-fill); }
-.theme-toggle svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
-.gallery-intro { display: grid; grid-template-columns: minmax(10rem, .6fr) 2.1fr 1fr; gap: 2rem; align-items: start; padding: clamp(4rem, 9vw, 8rem) 0 clamp(4rem, 7vw, 6rem); }
-.intro-art { display: flex; width: 8.5rem; height: 2.75rem; margin-top: .55rem; align-items: center; }
+.theme-toggle { display: grid; width: 2.5rem; height: 2.5rem; padding: 0; place-items: center; border: 1px solid var(--line); border-radius: .8rem; color: var(--ink); background: transparent; cursor: pointer; transition: color 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; -webkit-tap-highlight-color: transparent; }
+.theme-toggle:hover { color: #11130f; border-color: transparent; background: var(--signal); box-shadow: 0 4px 12px rgba(17, 19, 15, .12); transform: translateY(-1px); }
+.theme-toggle:active { transform: translateY(0) scale(.96); }
+.theme-toggle:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.theme-toggle svg { width: 1.05rem; height: 1.05rem; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; transition: transform 320ms cubic-bezier(.2, .8, .2, 1); }
+.theme-toggle:hover svg { transform: rotate(12deg); }
+.gallery-intro { display: flex; justify-content: space-between; gap: 2rem; align-items: center; padding: clamp(2.5rem, 5vw, 4.5rem) 0; }
+.intro-art { order: 2; flex-shrink: 0; display: flex; width: 7rem; height: 2.75rem; align-items: center; }
 .intro-art span { display: block; width: 2.75rem; height: 2.75rem; border: 1px solid var(--line); border-radius: 50%; }
 .intro-art span + span { margin-left: -.7rem; }
 .intro-art span:nth-child(2) { background: var(--signal); }
 .intro-art span:nth-child(3) { background: var(--ink); }
-.gallery-intro h1 { margin: 0; font-size: clamp(3.7rem, 8.5vw, 9.5rem); line-height: .84; letter-spacing: -.075em; font-weight: 610; }
-.gallery-intro h1 em { color: var(--signal); font-family: Georgia, serif; font-weight: 400; }
+.gallery-intro h1 { margin: 0; font-size: clamp(2.25rem, 5.5vw, 5rem); line-height: 1.12; letter-spacing: -.045em; font-weight: 400; }
+.gallery-intro h1 em { color: #526f00; font-family: Georgia, serif; font-weight: 400; }
+:root[data-theme='dark'] .gallery-intro h1 em { color: var(--signal); }
 .intro-copy { max-width: 27rem; margin: .65rem 0 0; color: var(--subtle); font-size: 1.05rem; line-height: 1.55; }
 .concept-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); }
 .concept-card { padding: 1.25rem 0 4.5rem; border-bottom: 1px solid var(--line); }
@@ -76,14 +78,13 @@ button, input, textarea, select { font: inherit; }
 .tag-list li { padding: .35rem .65rem; border: 1px solid var(--line); border-radius: 999px; font: 500 .68rem/1 var(--font-geist-mono); }
 .gallery-footer { display: flex; justify-content: space-between; padding: 2rem 0 3rem; color: var(--subtle); font: .75rem/1 var(--font-geist-mono); }
 @media (max-width: 900px) {
-  .gallery-intro { grid-template-columns: 1fr; gap: 1.5rem; }
-  .gallery-intro h1 { font-size: clamp(3.5rem, 15vw, 7rem); }
   .intro-copy { margin-left: 20%; }
   .concept-grid { grid-template-columns: 1fr; }
   .concept-card:nth-child(n) { padding: 1rem 0 3rem; border-right: 0; }
 }
 @media (max-width: 560px) {
   .gallery-shell { padding: 0 1rem; }
+  .intro-art { display: none; }
   .header-orbit { display: none; }
   .intro-copy { margin-left: 0; }
   .concept-meta { grid-template-columns: 1fr; }

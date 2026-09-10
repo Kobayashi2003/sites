@@ -11,14 +11,12 @@ export default function Home() {
           <span>Site Atlas</span>
         </Link>
         <div className="header-actions">
-          <span className="header-orbit" aria-hidden="true"><i /></span>
           <ThemeToggle />
         </div>
       </header>
       <section className="gallery-intro" aria-labelledby="gallery-title">
         <div className="intro-art" aria-hidden="true"><span /><span /><span /></div>
-        <h1 id="gallery-title">Site<br /><em>Atlas.</em></h1>
-        <p className="intro-copy">Complete visual directions, interaction systems, and product narratives—each kept in its own boundary so it can evolve without compromise.</p>
+        <h1 id="gallery-title">Site <em>Atlas.</em></h1>
       </section>
       <section className="concept-grid" aria-label="Concept website collection">
         {concepts.map((concept, index) => (
