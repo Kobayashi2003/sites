@@ -10,6 +10,9 @@ import {
   pressRhythm,
   releaseRhythm,
   rhythmSummary,
+  comboMultiplier,
+  groupPoints,
+  scoreRank,
 } from './rhythm.ts';
 
 const mapping = [0, 0, 1, 2, 3, 4];
@@ -224,4 +227,38 @@ test('survival generates beyond the initial chart while retaining bounded active
   assert.equal(s.lives, 3);
   assert.equal(stats.done, false);
   assert.ok(s.notes.length < 70);
+});
+
+test('score rewards Pure+, chords and sustained combos', () => {
+  assert.equal(comboMultiplier(9), 1);
+  assert.equal(comboMultiplier(10), 1.05);
+  assert.equal(comboMultiplier(250), 1.5);
+  assert.equal(groupPoints('pureplus', 2, 1), 600);
+  const state = createRhythm(60, mapping);
+  pressRhythm(state, 0, LEAD_IN + 10);
+  releaseRhythm(state, 0);
+  assert.equal(state.pureplus, 1);
+  assert.equal(state.score, 300);
+  pressRhythm(state, 2, state.notes[1].at + 40);
+  releaseRhythm(state, 2);
+  assert.equal(state.pureplus, 1);
+  assert.equal(state.score, 550);
+  assert.match(state.feedback, /^Pure ·/);
+  pressRhythm(state, 1, state.notes[2].at - 90);
+  assert.equal(state.score, 650);
+  assert.match(state.feedback, /^Far ·/);
+});
+
+test('a flawless fixed chart reaches its maximum score and rank S', () => {
+  const state = createRhythm(120, mapping, 'chords');
+  for (const note of state.notes) {
+    for (const lane of note.lanes) pressRhythm(state, lane, note.at);
+    for (const lane of note.lanes) releaseRhythm(state, lane);
+  }
+  const summary = rhythmSummary(state);
+  assert.equal(summary.score, state.maxScore);
+  assert.equal(summary.rank, 'S');
+  assert.equal(scoreRank(0, state.maxScore), 'D');
+  assert.equal(createRhythm(60, mapping, 'random', undefined, 10).maxScore, 0);
+  assert.equal(scoreRank(1000, 0), undefined);
 });

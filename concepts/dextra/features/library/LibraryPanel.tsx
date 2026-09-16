@@ -43,7 +43,12 @@ export default function LibraryPanel({
             <div>
               <small>32 groups · Both formats</small>
               <button onClick={() => loadProgram(p.id)}>
-                {busy ? 'End & load' : 'Load'} ↗
+                {busy
+                  ? 'End & load'
+                  : p.id === (challenge === 'endless' ? 'random' : program)
+                    ? 'Reload'
+                    : 'Load'}{' '}
+                <span aria-hidden="true">↗</span>
               </button>
             </div>
           </article>

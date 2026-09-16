@@ -52,6 +52,7 @@ export default function StaticTrainer({
     newRun(mapping, challenge === 'endless' ? 'random' : program),
   );
   const engine = useRef(view);
+  const startButton = useRef<HTMLButtonElement>(null);
   const origin = useRef(0),
     reported = useRef(false);
   const endless = challenge === 'endless';
@@ -193,61 +194,99 @@ export default function StaticTrainer({
   return (
     <section className={s.workbench} aria-label="Static practice">
       <StageControls>
-        <section className={s.panelSection} aria-labelledby="panel-session">
-          <h3 className={s.panelHeading} id="panel-session">
-            Session
-          </h3>
-          <div className={s.sessionCard}>
-            <div className={s.staticClock}>
-              <span>{endless ? 'Remaining' : 'Active time'}</span>
-              <strong>
-                <Icon name="clock" />
-                {time}s
-              </strong>
-            </div>
-            {endless && (
+        {keyAudioNotice && (
+          <section className={s.panelSection}>
+            <output className={s.motionNote}>{keyAudioNotice}</output>
+          </section>
+        )}
+      </StageControls>
+      <StageControls slot="status">
+        <div className={s.sessionCard} data-state={status}>
+          <div className={s.sessionHead}>
+            <strong aria-live="polite">
+              {status === 'idle'
+                ? 'Ready'
+                : status === 'paused'
+                  ? 'Paused'
+                  : status === 'done'
+                    ? 'Complete'
+                    : 'Playing'}
+            </strong>
+            <span>
+              {view.index}
+              {endless ? ' groups' : ' / 32'}
+            </span>
+          </div>
+          <div className={s.sessionMeter}>
+            {endless ? (
               <progress
-                className={s.timeBar}
                 max={limit * 1000}
                 value={Math.max(0, limit * 1000 - view.elapsed)}
                 aria-label="Time remaining"
               />
+            ) : (
+              <progress
+                max={view.groups.length}
+                value={view.index}
+                aria-label="Chart progress"
+              />
             )}
-            <div className={s.staticReadout}>
-              <span>
-                {view.index}
-                {endless ? ' groups' : ' / 32 groups'}
-              </span>
-              <span>
-                {status === 'paused'
-                  ? 'Paused'
-                  : direction === 'down'
-                    ? 'Next row at bottom'
-                    : 'Next row at top'}
-              </span>
-            </div>
+            <span>
+              {direction === 'down' ? 'Next row at bottom' : 'Next row at top'}
+            </span>
           </div>
-          {keyAudioNotice && (
-            <output className={s.motionNote}>{keyAudioNotice}</output>
-          )}
-        </section>
-        <StageControls slot="playback">
-          <div className={s.playButtons}>
-            <button className={s.startButton} onClick={play}>
-              <Icon name={status === 'running' ? 'pause' : 'play'} />
-              {label}
-            </button>
-            <button
-              className={s.endButton}
-              disabled={status !== 'running' && status !== 'paused'}
-              onClick={() => onStatus('idle')}
-            >
-              <Icon name="stop" />
-              End
-            </button>
-          </div>
-        </StageControls>
+          <p className={s.sessionHint}>
+            {status === 'paused'
+              ? 'The clock is stopped.'
+              : status === 'running'
+                ? 'Esc pauses the run.'
+                : endless
+                  ? `Clear as many groups as you can in ${limit}s.`
+                  : 'The clock starts with Start.'}
+          </p>
+        </div>
       </StageControls>
+      <StageControls slot="playback">
+        <div className={s.playButtons}>
+          <button ref={startButton} className={s.startButton} onClick={play}>
+            <Icon name={status === 'running' ? 'pause' : 'play'} />
+            {label}
+          </button>
+          <button
+            className={s.endButton}
+            disabled={status !== 'running' && status !== 'paused'}
+            onClick={() => {
+              onStatus('idle');
+              // End disables itself; keep keyboard focus on the primary action.
+              requestAnimationFrame(() => startButton.current?.focus());
+            }}
+          >
+            <Icon name="stop" />
+            End
+          </button>
+        </div>
+      </StageControls>
+      <div className={s.stageHud} aria-label="Run status">
+        <div>
+          <span>{endless ? 'Remaining' : 'Active time'}</span>
+          <strong>{time}s</strong>
+        </div>
+        <div>
+          <span>Groups</span>
+          <strong>
+            {view.index}
+            {!endless && <small>/ 32</small>}
+          </strong>
+        </div>
+        <div>
+          <span>Accuracy</span>
+          <strong>
+            {view.presses
+              ? `${Math.round(100 - staticSummary(view).errorRate)}%`
+              : '—'}
+          </strong>
+        </div>
+      </div>
       <div
         className={s.staticChart}
         data-direction={direction}

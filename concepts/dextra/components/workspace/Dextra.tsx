@@ -15,7 +15,13 @@ import StaticTrainer from '../../features/static/StaticTrainer';
 import FallingTrainer from '../../features/falling/FallingTrainer';
 import { programs } from '../../engine/rhythm';
 import type { ProgramId } from '../../engine/rhythm';
-import { defaults, defaultFingers, keyOptions } from '../../model/training';
+import {
+  defaults,
+  defaultFingers,
+  keyOptions,
+  lifeOptions,
+  timeOptions,
+} from '../../model/training';
 import type { Result, Status } from '../../model/training';
 import s from '../../styles.module.css';
 
@@ -73,6 +79,7 @@ function Workspace() {
   } = useFullscreen(status, setStatus);
   const [controls, setControls] = useState<HTMLDivElement | null>(null);
   const [playback, setPlayback] = useState<HTMLDivElement | null>(null);
+  const [statusSlot, setStatusSlot] = useState<HTMLDivElement | null>(null);
   const [history, setHistory] = useState<Result[]>([]);
   const [result, setResult] = useState<Result | null>(null);
   const [drawer, setDrawer] = useState<Drawer>(null);
@@ -135,9 +142,12 @@ function Workspace() {
     setFormat(result.format ?? 'falling');
     setDirection(result.direction ?? 'down');
     setChallenge(result.challenge ?? 'standard');
-    if (result.format === 'static') setTimeLimit(result.limit ?? 60);
+    if (result.format === 'static')
+      setTimeLimit(
+        timeOptions.includes(result.limit ?? 0) ? result.limit! : 60,
+      );
     else {
-      setLives(result.limit ?? 3);
+      setLives(lifeOptions.includes(result.limit ?? 0) ? result.limit! : 3);
       setInitialBpm(result.bpm || 60);
     }
     if (result.windows) setWindows(result.windows);
@@ -178,9 +188,9 @@ function Workspace() {
             setMapping(saved.mapping);
           if (saved.challenge === 'standard' || saved.challenge === 'endless')
             setChallenge(saved.challenge);
-          if ([30, 60, 120].includes(saved.timeLimit))
+          if (timeOptions.includes(saved.timeLimit))
             setTimeLimit(saved.timeLimit);
-          if ([1, 3, 5].includes(saved.lives)) setLives(saved.lives);
+          if (lifeOptions.includes(saved.lives)) setLives(saved.lives);
           if (saved.direction === 'up' || saved.direction === 'down')
             setDirection(saved.direction);
           if (saved.format === 'static' || saved.format === 'falling')
@@ -329,6 +339,7 @@ function Workspace() {
         value={{
           controls,
           playback,
+          status: statusSlot,
           expanded: stageExpanded,
           toggle: toggleStage,
         }}
@@ -456,8 +467,7 @@ function Workspace() {
                           { value: 'standard', label: 'Standard' },
                           {
                             value: 'endless',
-                            label:
-                              format === 'static' ? 'Timed random' : 'Survival',
+                            label: format === 'static' ? 'Timed' : 'Survival',
                           },
                         ]}
                         onChange={(v) => {
@@ -480,8 +490,8 @@ function Workspace() {
                           )}
                           disabled={busy}
                           options={(format === 'static'
-                            ? [30, 60, 120]
-                            : [1, 3, 5]
+                            ? timeOptions
+                            : lifeOptions
                           ).map((n) => ({
                             value: String(n),
                             label:
@@ -520,6 +530,11 @@ function Workspace() {
                 <div ref={setControls} hidden={!!result} />
               </div>
               <div className={s.controlFooter}>
+                <div
+                  ref={setStatusSlot}
+                  className={s.statusSlot}
+                  hidden={!!result}
+                />
                 <div ref={setPlayback} hidden={!!result} />
                 <div className={s.stageUtilities}>
                   <button
@@ -787,6 +802,11 @@ function Workspace() {
                         <span>
                           <strong>{r.mode}</strong>
                           <small>
+                            {r.challenge === 'endless'
+                              ? r.format === 'static'
+                                ? `${r.limit}s timed · `
+                                : `${r.limit} lives · `
+                              : ''}
                             {new Date(r.date).toLocaleString('en-US', {
                               month: 'short',
                               day: 'numeric',
@@ -800,10 +820,15 @@ function Workspace() {
                           </small>
                         </span>
                         <b>
+                          {r.rank && <i className={s.rankBadge}>{r.rank}</i>}
                           {r.format === 'static'
-                            ? `${((r.durationMs ?? 0) / 1000).toFixed(2)}s`
-                            : `${r.accuracy}%`}{' '}
-                          <span>↗</span>
+                            ? r.challenge === 'endless'
+                              ? `${r.hits} groups`
+                              : `${((r.durationMs ?? 0) / 1000).toFixed(2)}s`
+                            : r.score !== undefined
+                              ? r.score.toLocaleString('en-US')
+                              : `${r.accuracy}%`}
+                          <span aria-hidden="true">↗</span>
                         </b>
                       </button>
                     ))}

@@ -27,19 +27,13 @@ function metric(format: Format, challenge: Challenge) {
           value: (r: Result) => r.durationMs ?? Infinity,
           text: (n: number) => `${(n / 1000).toFixed(2)}s`,
         };
-  return challenge === 'endless'
-    ? {
-        label: 'Survived',
-        higher: true,
-        value: (r: Result) => r.durationMs ?? 0,
-        text: (n: number) => `${(n / 1000).toFixed(1)}s`,
-      }
-    : {
-        label: 'Accuracy',
-        higher: true,
-        value: (r: Result) => r.accuracy,
-        text: (n: number) => `${n}%`,
-      };
+  // Records saved before scoring existed have no score and are skipped.
+  return {
+    label: 'Score',
+    higher: true,
+    value: (r: Result) => r.score ?? NaN,
+    text: (n: number) => n.toLocaleString('en-US'),
+  };
 }
 
 function sharedFingers(mapping: number[]) {

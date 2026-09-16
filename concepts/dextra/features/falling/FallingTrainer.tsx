@@ -8,11 +8,13 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import {
   advanceRhythm,
+  comboMultiplier,
   programs,
   createRhythm,
   HIT_LINE,
   notePosition,
   LEAD_IN,
+  PURE_PLUS_WINDOW,
   pressRhythm,
   releaseRhythm,
   rhythmSummary,
@@ -21,6 +23,7 @@ import {
 import type { RhythmState, ProgramId } from '../../engine/rhythm';
 import { StageControls } from '../../components/workspace/StageContext';
 import Icon from '../../components/ui/Icon';
+import LifeMeter from '../../components/ui/LifeMeter';
 import s from '../../styles.module.css';
 import { fingers, keyLabel } from '../../model/training';
 import type { Status, Result } from '../../model/training';
@@ -71,6 +74,7 @@ export default function FallingTrainer({
     ),
   );
   const engine = useRef<RhythmState | null>(status === 'running' ? view : null);
+  const startButton = useRef<HTMLButtonElement>(null);
   const origin = useRef(0);
   const completed = useRef(false);
   const busy = status === 'running' || status === 'paused';
@@ -187,7 +191,11 @@ export default function FallingTrainer({
               late: result.late,
               meanOffset: result.meanOffset,
               meanAbsoluteOffset: result.meanAbsoluteOffset,
+              pureplus: result.pureplus,
             },
+            score: result.score,
+            maxScore: result.maxScore || undefined,
+            rank: result.rank,
             bpm,
             format: 'falling',
             challenge,
@@ -325,84 +333,6 @@ export default function FallingTrainer({
               </button>
             </div>
           </div>
-        </section>
-        <StageControls slot="playback">
-          <div className={s.playButtons}>
-            <button className={s.startButton} onClick={togglePlayback}>
-              <Icon name={status === 'running' ? 'pause' : 'play'} />
-              {status === 'running'
-                ? 'Pause'
-                : status === 'paused'
-                  ? 'Resume'
-                  : status === 'done'
-                    ? 'Retry'
-                    : 'Start'}
-            </button>
-            <button
-              className={s.endButton}
-              disabled={!busy}
-              onClick={() => {
-                onStatus('idle');
-              }}
-            >
-              <Icon name="stop" />
-              End
-            </button>
-          </div>
-        </StageControls>
-        <section className={s.panelSection} aria-labelledby="panel-session">
-          <h3 className={s.panelHeading} id="panel-session">
-            Session
-          </h3>
-          <div className={s.sessionCard}>
-            <div className={s.fallingReadout}>
-              <div>
-                <strong>
-                  {status === 'idle'
-                    ? 'Ready'
-                    : status === 'paused'
-                      ? 'Paused'
-                      : status === 'done'
-                        ? 'Complete'
-                        : view.elapsed < LEAD_IN
-                          ? `Ready in ${Math.ceil((LEAD_IN - view.elapsed) / 1000)}`
-                          : view.feedback}
-                </strong>
-                <output aria-live="polite">
-                  {status === 'running' && view.elapsed >= LEAD_IN
-                    ? `${stats.combo} streak`
-                    : status === 'paused'
-                      ? 'Resume to continue'
-                      : '3s lead-in'}
-                </output>
-              </div>
-              <span>
-                {stats.judged}
-                {challenge === 'endless' ? ' groups' : ' / 32'}
-              </span>
-            </div>
-            {challenge === 'endless' ? (
-              <div className={s.lifeBar}>
-                <Icon name="heart" />
-                <strong>
-                  {view.lives} / {limit}
-                </strong>
-                <span>Miss or Extra costs a life</span>
-              </div>
-            ) : (
-              <div className={s.chartProgress}>
-                <span>
-                  Phrase {Math.min(4, Math.floor(stats.judged / 8) + 1)}/4
-                </span>
-                <progress
-                  max={32}
-                  value={stats.judged}
-                  aria-label="Chart progress"
-                />
-                <span>{stats.judged ? `${stats.accuracy}%` : '—'}</span>
-              </div>
-            )}
-          </div>
           {reduced && (
             <p className={s.motionNote}>
               Reduced motion: fixed note previews. Press when the countdown
@@ -479,7 +409,109 @@ export default function FallingTrainer({
             </div>
           </div>
         </details>
+        <StageControls slot="status">
+          <div className={s.sessionCard} data-state={status}>
+            <div className={s.sessionHead}>
+              <strong aria-live="polite">
+                {status === 'idle'
+                  ? 'Ready'
+                  : status === 'paused'
+                    ? 'Paused'
+                    : status === 'done'
+                      ? 'Complete'
+                      : view.elapsed < LEAD_IN
+                        ? `Starting in ${Math.ceil((LEAD_IN - view.elapsed) / 1000)}`
+                        : 'Playing'}
+              </strong>
+              <span>
+                {challenge === 'endless'
+                  ? `${stats.judged} groups`
+                  : `${stats.judged} / 32`}
+              </span>
+            </div>
+            {challenge === 'endless' ? (
+              <div className={s.sessionMeter}>
+                <LifeMeter lives={view.lives} limit={limit} />
+                <span>Miss or Extra costs a life</span>
+              </div>
+            ) : (
+              <div className={s.sessionMeter}>
+                <progress
+                  max={32}
+                  value={stats.judged}
+                  aria-label="Chart progress"
+                />
+                <span>
+                  Phrase {Math.min(4, Math.floor(stats.judged / 8) + 1)} of 4
+                </span>
+              </div>
+            )}
+            <p className={s.sessionHint}>
+              {status === 'paused'
+                ? 'Resume continues from the same beat.'
+                : status === 'running'
+                  ? 'Esc pauses the run.'
+                  : '3s lead-in before the first note.'}
+            </p>
+          </div>
+        </StageControls>
+        <StageControls slot="playback">
+          <div className={s.playButtons}>
+            <button
+              ref={startButton}
+              className={s.startButton}
+              onClick={togglePlayback}
+            >
+              <Icon name={status === 'running' ? 'pause' : 'play'} />
+              {status === 'running'
+                ? 'Pause'
+                : status === 'paused'
+                  ? 'Resume'
+                  : status === 'done'
+                    ? 'Retry'
+                    : 'Start'}
+            </button>
+            <button
+              className={s.endButton}
+              disabled={!busy}
+              onClick={() => {
+                onStatus('idle');
+                // End disables itself; keep keyboard focus on the primary action.
+                requestAnimationFrame(() => startButton.current?.focus());
+              }}
+            >
+              <Icon name="stop" />
+              End
+            </button>
+          </div>
+        </StageControls>
       </StageControls>
+      <div className={s.stageHud} aria-label="Run score">
+        <div>
+          <span>Score</span>
+          <strong>{stats.score.toLocaleString('en-US')}</strong>
+        </div>
+        <div>
+          <span>Combo</span>
+          <strong>
+            {stats.combo}
+            {comboMultiplier(stats.combo) > 1 && (
+              <small>×{comboMultiplier(stats.combo).toFixed(2)}</small>
+            )}
+          </strong>
+        </div>
+        {challenge === 'endless' ? (
+          <div>
+            <span>Lives</span>
+            <LifeMeter lives={view.lives} limit={limit} />
+          </div>
+        ) : (
+          <div>
+            <span>Accuracy</span>
+            <strong>{stats.judged ? `${stats.accuracy}%` : '—'}</strong>
+          </div>
+        )}
+      </div>
       <div
         className={s.fallingBoard}
         aria-label="Six-lane falling chart"
@@ -498,7 +530,8 @@ export default function FallingTrainer({
               <>
                 <strong>
                   {view.lastJudgement.grade === 'perfect' &&
-                  Math.abs(view.lastJudgement.offset ?? Infinity) <= 25
+                  Math.abs(view.lastJudgement.offset ?? Infinity) <=
+                    Math.min(PURE_PLUS_WINDOW, windows.perfect)
                     ? 'Pure+'
                     : view.lastJudgement.grade === 'perfect'
                       ? 'Pure'

@@ -16,6 +16,9 @@ export const keyOptions = [
     'ArrowRight',
   ]),
 ];
+/** Survival lives and timed-random limits offered in Setup. */
+export const lifeOptions = [1, 3, 5, 10];
+export const timeOptions = [30, 60, 120];
 export type Status = 'idle' | 'running' | 'paused' | 'done';
 export type Result = {
   date: string;
@@ -33,6 +36,10 @@ export type Result = {
   errors?: number;
   errorRate?: number;
   windows?: { perfect: number; good: number };
+  /** Falling runs only; absent in records saved before scoring existed. */
+  score?: number;
+  maxScore?: number;
+  rank?: string;
   judgements?: {
     perfect: number;
     good: number;
@@ -43,6 +50,7 @@ export type Result = {
     late: number;
     meanOffset: number;
     meanAbsoluteOffset: number;
+    pureplus?: number;
   };
 };
 

@@ -20,7 +20,7 @@ An English-language left-hand independence and rhythm practice studio at `/conce
 
 ## Features
 
-Five exercise plans, standard 32-group charts, timed random static practice (30/60/120 seconds), and falling survival (1/3/5 lives). Falling retains BPM, scroll speed, chart height, adjustable timing windows, hit-window display. Both formats retain up/down direction, pause/resume, fullscreen with fallback, results, retry and local history. Six remappable keys retain configurable finger assignments.
+Five exercise plans, standard 32-group charts, timed random static practice (30/60/120 seconds), and falling survival (1/3/5/10 lives) with scoring. Falling retains BPM, scroll speed, chart height, adjustable timing windows, hit-window display. Both formats retain up/down direction, pause/resume, fullscreen with fallback, results, retry and local history. Six remappable keys retain configurable finger assignments.
 
 The header provides System, Light and Dark themes. Preferences and history retain the original `dextra-v1`, `dextra-theme` and trainer display storage keys. No migration or external services are required. Decorative transitions only affect menus, panels, results and key feedback; reduced motion uses the existing fixed-preview trainer behavior.
 
@@ -30,7 +30,7 @@ Physical keyboard required for scored practice. Mobile layouts support browsing 
 
 - `npm run lint`
 - `npx tsc --noEmit`
-- `node --test concepts/dextra/engine/*.test.mjs` (17 scoring/generation tests)
+- `node --test concepts/dextra/engine/rhythm.test.mjs concepts/dextra/engine/static.test.mjs` (21 scoring/generation tests)
 - `npm run build`
 
 Browser checks: 1440px desktop and 320px mobile, light/system-dark appearances, theme selection via arrow keys and Enter, settings Escape and focus restoration, survival completion and result view, static playback and fullscreen exit/pause. At 320px, document scroll width equals client width.
@@ -66,3 +66,11 @@ Both sidebars collapse into 52px rails, from the toggle in each panel, by pressi
 The right panel adds a Progress card for the loaded exercise, format and challenge. It shows run count, best and last result (accuracy, survival time, active time or groups), and the three most recent runs. Lane key chips use the configured lane colors, and the shared-finger note follows the current mapping.
 
 Fixes: undefined `endButton`/`fallingControls` classes, Static key-row lane tint covering only the label, select labels drifting to the center, a hard-coded shared-pinky note, the dead result min-height state, and Static showing Start instead of Retry after completion.
+
+## Scoring, live dock and survival update (2026-09-16)
+
+Falling runs are scored by DEXTRA rules; Arcaea scoring is not reproduced. Points are per key in a group: Pure+ 300, Pure 250, Far 100, and Miss or Extra 0, so chords score once per key. Every 10 consecutive groups add a 5% combo multiplier, capped at +50% from a 100 combo. Fixed charts also compute a maximum score and a rank: S at 95% or more of the maximum, then A 85%, B 70%, C 50%, and D below that. Survival records only a score. Results, history and the Progress card show the score; records saved before this update keep their accuracy view.
+
+Survival offers 1, 3, 5 or 10 lives. While a run is playing, only the setup scroll area and the guide soften. The left footer stays sharp as a live dock: status, progress or hearts, Pause/Resume, End and Fullscreen. A HUD strip above the chart shows score, combo and accuracy or lives for Falling, and remaining or active time, groups and accuracy for Static. End returns focus to Start, and result actions stay pinned while the breakdown scrolls.
+
+Selected controls use a tonal `--chosen` color pair in both themes instead of a solid fill, text selection follows the theme, and checkboxes render as themed switches. Tests: `node --test concepts/dextra/engine/rhythm.test.mjs concepts/dextra/engine/static.test.mjs` (21 tests).

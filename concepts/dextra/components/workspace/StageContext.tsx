@@ -4,12 +4,14 @@ import type { ReactNode } from 'react';
 type Stage = {
   controls: HTMLDivElement | null;
   playback: HTMLDivElement | null;
+  status: HTMLDivElement | null;
   expanded: boolean;
   toggle: () => Promise<void>;
 };
 export const StageContext = createContext<Stage>({
   controls: null,
   playback: null,
+  status: null,
   expanded: false,
   toggle: async () => {},
 });
@@ -18,7 +20,7 @@ export function StageControls({
   slot = 'controls',
 }: {
   children: ReactNode;
-  slot?: 'controls' | 'playback';
+  slot?: 'controls' | 'playback' | 'status';
 }) {
   const stage = useContext(StageContext);
   return stage[slot] ? createPortal(children, stage[slot]) : null;

@@ -3,6 +3,33 @@ export const PERFECT_WINDOW = 50;
 export const LEAD_IN = 3000;
 export const TRAVEL_TIME = 2400;
 export const HIT_LINE = 80;
+/** Pure+ is the inner subdivision of Pure; it never exceeds the Pure window. */
+export const PURE_PLUS_WINDOW = 25;
+/** Points per lane in a group. Chords score once per key. */
+export const NOTE_POINTS = { pureplus: 300, perfect: 250, good: 100 } as const;
+export const SCORE_RANKS = [
+  ['S', 0.95],
+  ['A', 0.85],
+  ['B', 0.7],
+  ['C', 0.5],
+  ['D', 0],
+] as const;
+/** +5% for every 10 consecutive groups, capped at +50% from a 100 combo. */
+export function comboMultiplier(combo: number) {
+  return 1 + Math.min(10, Math.floor(Math.max(0, combo) / 10)) * 0.05;
+}
+export function groupPoints(
+  grade: 'pureplus' | 'perfect' | 'good',
+  lanes: number,
+  combo: number,
+) {
+  return Math.round(NOTE_POINTS[grade] * lanes * comboMultiplier(combo));
+}
+export function scoreRank(score: number, max: number) {
+  if (!max) return undefined;
+  const ratio = score / max;
+  return SCORE_RANKS.find(([, min]) => ratio >= min)![0];
+}
 export function notePosition(at: number, elapsed: number, speed = 1) {
   return (1 - ((at - elapsed) * speed) / TRAVEL_TIME) * HIT_LINE;
 }
@@ -87,6 +114,10 @@ export type RhythmState = {
   combo: number;
   best: number;
   extras: number;
+  score: number;
+  pureplus: number;
+  /** Highest possible score for a fixed chart; 0 for open-ended survival. */
+  maxScore: number;
   feedback: string;
   lastJudgement?: {
     grade: Exclude<Grade, 'pending'> | 'extra';
@@ -109,7 +140,7 @@ export function createRhythm(
     [2, 4],
     [3, 5],
   ].filter(([a, b]) => mapping[a] !== mapping[b]);
-  return {
+  const state: RhythmState = {
     lives,
     survival: lives > 0,
     ended: false,
@@ -134,6 +165,9 @@ export function createRhythm(
     combo: 0,
     best: 0,
     extras: 0,
+    score: 0,
+    pureplus: 0,
+    maxScore: 0,
     feedback: 'Get ready. Meet the notes at the line.',
 
     notes: Array.from({ length: 32 }, (_, i) => ({
@@ -157,6 +191,12 @@ export function createRhythm(
       offsets: {},
     })),
   };
+  if (!state.survival)
+    state.maxScore = state.notes.reduce(
+      (sum, note, i) => sum + groupPoints('pureplus', note.lanes.length, i + 1),
+      0,
+    );
+  return state;
 }
 
 export function advanceRhythm(state: RhythmState, elapsed: number) {
@@ -254,9 +294,18 @@ export function pressRhythm(state: RhythmState, lane: number, elapsed: number) {
     };
     note.grade = worst <= state.windows.perfect ? 'perfect' : 'good';
     note.judgedAt = state.elapsed;
+    const plus =
+      note.grade === 'perfect' &&
+      worst <= Math.min(PURE_PLUS_WINDOW, state.windows.perfect);
+    if (plus) state.pureplus++;
     state.combo++;
     state.best = Math.max(state.best, state.combo);
-    state.feedback = `${note.grade === 'perfect' ? 'Perfect' : 'Good'} · ${Math.round(offset) > 0 ? '+' : ''}${Math.round(offset)} ms`;
+    state.score += groupPoints(
+      plus ? 'pureplus' : note.grade,
+      note.lanes.length,
+      state.combo,
+    );
+    state.feedback = `${plus ? 'Pure+' : note.grade === 'perfect' ? 'Pure' : 'Far'} · ${Math.round(offset) > 0 ? '+' : ''}${Math.round(offset)} ms`;
   }
 }
 
@@ -317,5 +366,9 @@ export function rhythmSummary(state: RhythmState) {
     combo: state.combo,
     best: state.best,
     extras: state.extras,
+    score: state.score,
+    pureplus: state.pureplus,
+    maxScore: state.maxScore,
+    rank: scoreRank(state.score, state.maxScore),
   };
 }
