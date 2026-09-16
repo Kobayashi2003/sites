@@ -1,0 +1,2112 @@
+/* Local design tokens. All surfaces inherit the selected appearance. */
+.root {
+  --paper: #f1f3f7;
+  --surface: #ffffff;
+  --soft: #e9edf5;
+  --ink: #1d293e;
+  --subtle: #59677d;
+  --line: #d7dfeb;
+  --accent: #315fd6;
+  --selected: #e8efff;
+  --key: #fafbff;
+  --key-edge: #becce3;
+  --orange: #315fd6;
+  --on-orange: #fff;
+  --target: #e1eaff;
+  --target-ink: #254fb3;
+  --pressed: #d1e0ff;
+  --focus: #315fd6;
+  color-scheme: light;
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font:
+    16px/1.5 var(--font-geist-sans),
+    Arial,
+    sans-serif;
+}
+.root[data-theme='dark'] {
+  --paper: #10141d;
+  --surface: #191f2b;
+  --soft: #222b3b;
+  --ink: #ecf1fb;
+  --subtle: #a3b0c5;
+  --line: #313d51;
+  --accent: #9bb8ff;
+  --selected: #273a60;
+  --key: #263044;
+  --key-edge: #475a7b;
+  --orange: #a9c1ff;
+  --on-orange: #102046;
+  --target: #24385e;
+  --target-ink: #bed0ff;
+  --pressed: #354f7f;
+  --focus: #a9c1ff;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  .root[data-theme='system'] {
+    --paper: #10141d;
+    --surface: #191f2b;
+    --soft: #222b3b;
+    --ink: #ecf1fb;
+    --subtle: #a3b0c5;
+    --line: #313d51;
+    --accent: #9bb8ff;
+    --selected: #273a60;
+    --key: #263044;
+    --key-edge: #475a7b;
+    --orange: #a9c1ff;
+    --on-orange: #102046;
+    --target: #24385e;
+    --target-ink: #bed0ff;
+    --pressed: #354f7f;
+    --focus: #a9c1ff;
+    color-scheme: dark;
+  }
+}
+.root button,
+.root select,
+.root input {
+  font: inherit;
+}
+.root button {
+  cursor: pointer;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.root button:hover {
+  background: var(--soft);
+  border-color: var(--key-edge);
+}
+.root button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.root :is(button, a, input, select, summary):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.root button > svg {
+  flex-shrink: 0;
+}
+.root [hidden] {
+  display: none !important;
+}
+.root input[type='range'] {
+  accent-color: var(--accent);
+  width: 100%;
+  min-height: 24px;
+}
+.root input[type='checkbox'] {
+  accent-color: var(--accent);
+  width: 20px;
+  height: 20px;
+}
+.root kbd {
+  font-family: var(--font-geist-mono), monospace;
+}
+.practiceApp {
+  display: block;
+}
+.appHeader {
+  min-height: 84px;
+  padding: 18px max(24px, calc((100vw - 1440px) /2));
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.appBrand {
+  color: var(--ink);
+  text-decoration: none;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  white-space: nowrap;
+}
+.appBrand > span {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--surface);
+  font-size: 30px;
+  line-height: 1;
+}
+.appBrand strong {
+  font-size: 19px;
+  letter-spacing: 1px;
+}
+.brandSuffix {
+  font-weight: 400;
+  color: var(--subtle);
+}
+.appIdentity {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  color: var(--subtle);
+}
+.appActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.appActions button > span:not(:only-child) {
+  font-variant-numeric: tabular-nums;
+}
+.practiceMain {
+  max-width: 1440px;
+  padding: 44px 28px 24px;
+  margin: auto;
+}
+.workspaceHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.eyebrow {
+  display: block;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 1.6px;
+}
+.workspaceHeading h1 {
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.15;
+  letter-spacing: -1.6px;
+  font-weight: 550;
+  margin: 12px 0;
+}
+.workspaceHeading p {
+  color: var(--subtle);
+  margin: 0;
+}
+.sessionCount {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 190px;
+}
+.sessionCount strong {
+  font-size: 42px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.sessionCount span {
+  font-size: 13px;
+  color: var(--subtle);
+  max-width: 90px;
+}
+.practiceLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  align-items: start;
+  gap: 24px;
+}
+.practiceColumn {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 8px 32px #07152d05;
+}
+.loadedPlan {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.loadedPlan h2 {
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 550;
+  letter-spacing: -0.6px;
+  margin: 6px 0;
+}
+.loadedPlan p {
+  margin: 0;
+  color: var(--subtle);
+  font-size: 14px;
+}
+.practiceToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.formatBar {
+  display: flex;
+  padding: 4px;
+  gap: 4px;
+  background: var(--soft);
+  border-radius: 10px;
+}
+.root .formatBar button {
+  border: 0;
+  min-height: 36px;
+  background: transparent;
+  font-size: 14px;
+  padding: 6px 18px;
+}
+.root .formatBar button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 2px 5px #0000000c;
+}
+.challengeBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.directionControl {
+  margin-left: auto;
+}
+.selectControl {
+  position: relative;
+  min-width: 100px;
+}
+.selectControl > button {
+  width: 100%;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.selectMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 260px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 12px 32px #00000026;
+  z-index: 50;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.selectMenu[data-above='true'] {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.root .selectMenu > button {
+  width: 100%;
+  border: 0;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.root .selectMenu > button[aria-selected='true'] {
+  background: var(--selected);
+  color: var(--accent);
+}
+.practiceGuide {
+  display: grid;
+  gap: 16px;
+}
+.guideCard {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 24px;
+  border-radius: 14px;
+}
+.guideCard h2 {
+  font-size: 19px;
+  letter-spacing: -0.4px;
+  margin: 14px 0 10px;
+  font-weight: 550;
+}
+.guideCard p {
+  color: var(--subtle);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 14px 0;
+}
+.root .guideCard button {
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  width: 100%;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.fingerMap {
+  margin-top: 16px;
+}
+.fingerMap > div {
+  display: grid;
+  grid-template-columns: 26px 1fr 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+.fingerMap span {
+  font-size: 12px;
+  color: var(--subtle);
+}
+.fingerMap span:last-child {
+  text-align: right;
+}
+.fingerMap kbd {
+  border: 1px solid var(--key-edge);
+  border-bottom-width: 3px;
+  border-radius: 5px;
+  padding: 3px 8px;
+  background: var(--key);
+  font-size: 12px;
+  text-align: center;
+}
+.guideTip {
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+  font-size: 13px;
+  color: var(--subtle);
+}
+.workspaceFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 0 0;
+  color: var(--subtle);
+  font-size: 12px;
+}
+/* Trainer controls and shared chart presentation. */
+.workbench {
+  background: var(--surface);
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  padding: 20px 24px;
+}
+.tempo {
+  flex: 1 1 135px;
+  max-width: 190px;
+}
+.tempo label {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+.tempo strong {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.tempo small {
+  font-size: 10px;
+  color: var(--subtle);
+}
+.quickSpeed {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.quickSpeed > span {
+  display: none;
+}
+.root .quickSpeed button {
+  min-width: 36px;
+  padding: 5px;
+}
+.quickSpeed output {
+  min-width: 44px;
+  text-align: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.root .soundButton {
+  font-size: 13px;
+}
+.playButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+.root .playButtons button {
+  font-size: 13px;
+  padding: 8px 12px;
+}
+.root .startButton {
+  background: var(--orange);
+  color: var(--on-orange);
+  border-color: var(--orange);
+  min-width: 90px;
+  font-weight: 600;
+}
+.root .startButton:hover {
+  filter: brightness(1.08);
+}
+.fallingReadout,
+.staticReadout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  background: var(--soft);
+  border-block: 1px solid var(--line);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.fallingReadout > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.fallingReadout strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.fallingReadout output,
+.staticReadout {
+  color: var(--subtle);
+}
+.chartSettings {
+  border-bottom: 1px solid var(--line);
+}
+.chartSettings summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  min-height: 44px;
+}
+.chartSettings summary::-webkit-details-marker {
+  display: none;
+}
+.chartSettings summary > span:last-child {
+  color: var(--subtle);
+}
+.chartSettings summary b {
+  display: inline-block;
+  margin-left: 12px;
+}
+.chartSettings[open] summary b {
+  transform: rotate(180deg);
+}
+.chartSettingsBody {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  padding: 16px 24px 24px;
+}
+.chartSetting label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+.chartSetting p,
+.chartSettingsNote {
+  font-size: 12px;
+  color: var(--subtle);
+}
+.speedPresets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.root .speedPresets button,
+.root .autoHeight {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+.root button[aria-pressed='true']:not(.startButton) {
+  color: var(--accent);
+  background: var(--selected);
+}
+.chartSetting .windowToggle {
+  justify-content: flex-start;
+  align-items: center;
+}
+.chartProgress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--subtle);
+}
+.chartProgress progress {
+  flex: 1;
+  min-width: 0;
+  height: 3px;
+  border: 0;
+  background: var(--soft);
+  accent-color: var(--accent);
+}
+.chartProgress progress::-webkit-progress-bar {
+  background: var(--soft);
+}
+.chartProgress progress::-webkit-progress-value {
+  background: var(--accent);
+}
+.fallingBoard {
+  height: clamp(240px, 36vh, 390px);
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  position: relative;
+  overflow: hidden;
+  background: var(--paper);
+  isolation: isolate;
+}
+.fallingColumn {
+  position: relative;
+  border-right: 1px solid var(--line);
+}
+.fallingColumn:last-child {
+  border: 0;
+}
+.columnPressed {
+  background: var(--selected);
+}
+.columnLabel {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--subtle);
+  opacity: 0.65;
+  font-size: 11px;
+}
+.fallingNote {
+  position: absolute;
+  left: 15%;
+  width: 70%;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--surface);
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+  transform: translateY(-50%);
+  box-shadow: 0 3px 0 var(--key-edge);
+  z-index: 4;
+}
+.fallingNote[data-chord='true'] {
+  background: var(--target-ink);
+}
+.noteDue {
+  box-shadow: 0 0 0 3px var(--pressed);
+}
+.judgementLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  z-index: 3;
+  pointer-events: none;
+}
+.judgementLine span {
+  position: absolute;
+  right: 5px;
+  top: 4px;
+  color: var(--accent);
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.hitWindow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--target);
+  pointer-events: none;
+  opacity: 0.65;
+}
+.hitWindow > span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--pressed);
+}
+.beatGuide {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--line);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.beatGuide[data-measure='true'] {
+  opacity: 0.9;
+}
+.chordBridge {
+  position: absolute;
+  height: 2px;
+  background: var(--accent);
+}
+.chartJudgement {
+  position: absolute;
+  top: 30%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+  z-index: 5;
+}
+.chartJudgement strong {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 24px;
+  color: var(--target-ink);
+}
+.chartJudgement span {
+  font-size: 12px;
+  color: var(--subtle);
+}
+.chartJudgement[data-grade='miss'] strong,
+.chartJudgement[data-grade='extra'] strong {
+  color: var(--ink);
+}
+.hitFeedback {
+  position: absolute;
+  top: 88%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 9px;
+  color: var(--accent);
+}
+.fallingBoard[data-direction='up'] .hitFeedback {
+  top: 18%;
+}
+.fallingPads {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  border-block: 1px solid var(--line);
+}
+.fallingPads > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 16px 4px;
+  border-right: 1px solid var(--line);
+}
+.fallingPads > div:last-child {
+  border: 0;
+}
+.fallingPads kbd {
+  background: var(--key);
+  border: 1px solid var(--key-edge);
+  border-bottom-width: 3px;
+  border-radius: 7px;
+  min-width: 42px;
+  padding: 6px 8px;
+  text-align: center;
+  font-size: 12px;
+}
+.fallingPads > div > span {
+  font-size: 11px;
+  color: var(--subtle);
+}
+.fallingPadPressed {
+  background: var(--selected);
+}
+.fallingPadPressed kbd {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  color: var(--accent);
+}
+.fallingNext {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+  font-size: 11px;
+  color: var(--subtle);
+  font-variant-numeric: tabular-nums;
+}
+.motionNote {
+  margin: 0;
+  padding: 12px 24px;
+  font-size: 13px;
+  color: var(--subtle);
+}
+.lifeBar {
+  display: flex;
+  gap: 10px;
+  padding: 12px 24px;
+  align-items: center;
+  font-size: 13px;
+}
+.lifeBar span {
+  color: var(--subtle);
+  margin-left: auto;
+}
+.staticClock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.staticClock strong {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  min-width: 80px;
+}
+.staticClock span {
+  color: var(--subtle);
+}
+.staticChart {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+  background: var(--paper);
+}
+.staticKeys,
+.staticRow {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  text-align: center;
+}
+.staticKeys {
+  padding: 14px 0;
+  font-size: 12px;
+  color: var(--subtle);
+}
+.staticChart[data-direction='down'] .staticKeys {
+  order: 1;
+}
+.staticRow {
+  height: 38px;
+  border-top: 1px solid var(--line);
+}
+.staticRow > span {
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+}
+.staticRow i {
+  width: 60%;
+  height: 10px;
+  border-radius: 4px;
+  background: var(--key-edge);
+}
+.staticRow[data-current='true'] {
+  background: var(--target);
+  box-shadow: inset 3px 0 var(--accent);
+}
+.staticRow[data-current='true'] i {
+  background: var(--accent);
+}
+.staticRow[data-done='true'] {
+  opacity: 0.25;
+}
+.staticRow span[data-held='true'] {
+  background: var(--pressed);
+}
+/* Fullscreen is confined to the active chart, including the fallback. */
+.root .expandedStudio,
+.root .staticFullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  z-index: 100;
+  border: 0;
+  border-radius: 0;
+  background: var(--paper);
+}
+.root .expandedStudio > :not(.fallingBoard),
+.root .staticFullscreen > :not(.staticChart) {
+  display: none;
+}
+.root .expandedStudio .fallingBoard {
+  height: 100%;
+  width: 100%;
+}
+.root .staticFullscreen .staticChart {
+  height: 100%;
+  padding: 70px 0 0;
+}
+.staticFullscreen .staticRow {
+  flex: 1;
+  min-height: 0;
+}
+.expandedStudio .columnLabel {
+  top: 80px;
+}
+.fullscreenOverlay,
+.staticFullControls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  z-index: 10;
+  font-size: 13px;
+}
+.fullscreenOverlay > div,
+.staticFullControls > div {
+  display: flex;
+  gap: 8px;
+}
+/* Modal workspace panels and result review. */
+.workspaceDrawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(520px, 100%);
+  max-width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 28px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  overflow-y: auto;
+}
+.workspaceDrawer::backdrop {
+  background: #080f20a6;
+  backdrop-filter: blur(4px);
+}
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.drawerHeader span {
+  font-size: 10px;
+  letter-spacing: 1.7px;
+  color: var(--accent);
+}
+.drawerHeader h2 {
+  font-size: 30px;
+  font-weight: 500;
+  margin: 8px 0;
+}
+.drawerHeader button {
+  font-size: 24px;
+  min-width: 44px;
+}
+.drawerIntro {
+  color: var(--subtle);
+  font-size: 14px;
+  margin: 20px 0 28px;
+}
+.drawerWarning,
+.layoutLock {
+  background: var(--selected);
+  border: 1px solid var(--line);
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.planList {
+  display: grid;
+  gap: 14px;
+}
+.planList article {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.planList article[data-loaded='true'] {
+  border-color: var(--accent);
+  background: var(--selected);
+}
+.planListTitle,
+.planList article > div:last-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.planListTitle {
+  font-size: 11px;
+  color: var(--accent);
+}
+.planList h3 {
+  font-size: 21px;
+  font-weight: 550;
+  margin: 12px 0;
+}
+.planList p {
+  font-size: 14px;
+  color: var(--subtle);
+}
+.planList small {
+  font-size: 12px;
+  color: var(--subtle);
+}
+.drawerSetting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.windowSettings,
+.keySetup {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.windowSettings h3,
+.keySetup h3 {
+  font-size: 18px;
+  font-weight: 550;
+  margin: 0 0 12px;
+}
+.windowSettings p,
+.windowSettings small,
+.keySetup p {
+  font-size: 14px;
+  color: var(--subtle);
+}
+.windowSettings label {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 18px 0;
+  font-size: 14px;
+}
+.keySetup output {
+  display: block;
+  font-size: 13px;
+  color: var(--accent);
+  margin: 18px 0;
+}
+.keySetupRows {
+  display: grid;
+  gap: 8px;
+}
+.keySetupRows > div {
+  display: grid;
+  grid-template-columns: 55px 1fr 1.1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.root .historyLink {
+  margin-top: 16px;
+  color: var(--accent);
+  font-size: 13px;
+}
+.recordList {
+  display: grid;
+  gap: 10px;
+}
+.root .recordList > button {
+  text-align: left;
+  justify-content: space-between;
+  padding: 16px;
+}
+.recordList strong,
+.recordList small {
+  display: block;
+}
+.recordList strong {
+  font-size: 15px;
+}
+.recordList small {
+  font-size: 12px;
+  color: var(--subtle);
+  margin-top: 6px;
+}
+.recordList b {
+  white-space: nowrap;
+  color: var(--accent);
+  font-size: 18px;
+}
+.reviewEmpty {
+  padding: 24px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--subtle);
+}
+.resultScreen {
+  padding: 40px 24px;
+  text-align: center;
+  border-radius: 0 0 16px 16px;
+  outline-offset: -4px;
+}
+.resultBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+  font-size: 13px;
+}
+.resultScreen h2 {
+  font-size: 28px;
+  font-weight: 550;
+  margin: 16px 0 0;
+}
+.resultScreen > p,
+.resultContext {
+  font-size: 14px;
+  color: var(--subtle);
+}
+.resultScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 24px 0;
+}
+.resultScore > strong {
+  font-size: 72px;
+  line-height: 1.1;
+  font-weight: 450;
+  letter-spacing: -4px;
+  font-variant-numeric: tabular-nums;
+}
+.resultScore small {
+  font-size: 26px;
+  letter-spacing: 0;
+}
+.resultScore > span {
+  font-size: 13px;
+  color: var(--subtle);
+  margin-top: 8px;
+}
+.resultGrades {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 460px;
+  margin: 24px auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+}
+.resultGrades > div {
+  padding: 16px 4px;
+}
+.resultGrades span {
+  display: block;
+  color: var(--subtle);
+  font-size: 12px;
+}
+.resultGrades strong {
+  font-size: 24px;
+  font-weight: 500;
+}
+.resultTiming {
+  max-width: 460px;
+  margin: 24px auto;
+  font-size: 14px;
+}
+.resultTiming > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.resultTiming dt {
+  color: var(--subtle);
+}
+.resultTiming dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.resultActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+/* Only state transitions animate; the timing engine owns note positions. */
+@media (prefers-reduced-motion: no-preference) {
+  .root button {
+    transition:
+      background-color 140ms,
+      border-color 140ms,
+      color 140ms;
+  }
+  .fallingPads kbd {
+    transition: transform 60ms;
+  }
+  .selectMenu {
+    animation: surfaceEnter 120ms ease-out;
+  }
+  .workspaceDrawer[open] {
+    animation: panelEnter 180ms ease-out;
+  }
+  .resultScreen {
+    animation: surfaceEnter 220ms ease-out;
+  }
+}
+@keyframes surfaceEnter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes panelEnter {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (max-width: 1200px) {
+  .appIdentity {
+    display: none;
+  }
+  .practiceLayout {
+    grid-template-columns: minmax(0, 1fr) 250px;
+  }
+  .guideCard {
+    padding: 20px;
+  }
+  .controls {
+    gap: 12px;
+  }
+  .playButtons {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 950px) {
+  .practiceLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .practiceGuide {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .guideCard {
+    padding: 18px;
+  }
+  .practiceMain {
+    padding-top: 32px;
+  }
+  .playButtons {
+    width: auto;
+  }
+  .fingerMap > div {
+    grid-template-columns: 20px 1fr;
+  }
+  .fingerMap span:last-child {
+    grid-column: 2;
+    text-align: center;
+  }
+}
+@media (max-width: 650px) {
+  .appHeader {
+    padding: 14px 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .appBrand strong {
+    font-size: 16px;
+  }
+  .appActions {
+    gap: 6px;
+  }
+  .appActions button {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .appActions .selectControl {
+    min-width: 85px;
+  }
+  .appActions {
+    width: 100%;
+    margin-left: 0;
+  }
+  .appActions > .selectControl {
+    margin-right: auto;
+  }
+  .practiceMain {
+    padding: 28px 12px 20px;
+  }
+  .workspaceHeading {
+    margin-bottom: 24px;
+  }
+  .workspaceHeading h1 {
+    letter-spacing: -1px;
+  }
+  .workspaceHeading p {
+    font-size: 14px;
+  }
+  .sessionCount {
+    display: none;
+  }
+  .loadedPlan {
+    padding: 20px 16px;
+  }
+  .loadedPlan h2 {
+    font-size: 21px;
+  }
+  .practiceToolbar {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+  .formatBar {
+    width: 100%;
+  }
+  .formatBar button {
+    flex: 1;
+  }
+  .challengeBar {
+    flex: 1;
+  }
+  .directionControl {
+    margin-left: 0;
+  }
+  .controls {
+    padding: 16px;
+    gap: 10px;
+  }
+  .tempo {
+    max-width: none;
+  }
+  .playButtons {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .chartSettingsBody {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px;
+  }
+  .chartSettings summary,
+  .fallingReadout,
+  .staticReadout {
+    padding: 12px 16px;
+  }
+  .fallingReadout > div {
+    gap: 8px;
+  }
+  .chartProgress {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+  .fallingPads kbd {
+    min-width: 0;
+    max-width: 100%;
+    padding: 6px 4px;
+    font-size: 10px;
+  }
+  .fallingPads > div > span {
+    font-size: 10px;
+  }
+  .fallingNext {
+    padding: 12px;
+    font-size: 10px;
+    gap: 8px;
+  }
+  .practiceGuide {
+    grid-template-columns: 1fr;
+  }
+  .fingerMap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .fingerMap > div {
+    grid-template-columns: 20px 1fr;
+  }
+  .workspaceFooter {
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11px;
+  }
+  .workspaceDrawer {
+    padding: 20px 16px;
+  }
+  .staticClock {
+    flex-wrap: wrap;
+  }
+  .staticReadout {
+    font-size: 11px;
+  }
+  .fullscreenOverlay,
+  .staticFullControls {
+    padding: 8px;
+    gap: 6px;
+    font-size: 11px;
+  }
+  .fullscreenOverlay button,
+  .staticFullControls button {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  .keySetupRows > div {
+    grid-template-columns: 45px 1fr 1.15fr;
+  }
+  .keySetupRows button {
+    padding: 8px;
+    font-size: 12px;
+  }
+}
+
+/* Per-lane colors are scoped to chart cells; geometry stays unchanged. */
+.fallingColumn {
+  background-color: var(--lane-tint, transparent);
+}
+.columnPressed {
+  background-image: linear-gradient(var(--key-tint), var(--key-tint));
+}
+.fallingNote,
+.fallingNote[data-chord='true'] {
+  background: var(--note-color, var(--accent));
+}
+.fallingPads > div {
+  background-color: var(--lane-tint, transparent);
+}
+.fallingPads kbd {
+  background: linear-gradient(var(--key-tint), var(--key-tint)), var(--key);
+}
+.fallingPads .fallingPadPressed kbd {
+  background: linear-gradient(var(--key-active), var(--key-active)), var(--key);
+}
+.staticRow > span,
+.staticKeys > span {
+  background-color: var(--lane-tint, transparent);
+}
+.staticRow i,
+.staticRow[data-current='true'] i {
+  background: var(--note-color, var(--accent));
+}
+.staticRow span[data-held='true'] {
+  background:
+    linear-gradient(var(--key-active), var(--key-active)), var(--lane-tint);
+}
+.colorSettings {
+  display: grid;
+  gap: 12px;
+}
+.colorRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 66px 66px;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  align-items: center;
+}
+.colorRow > strong {
+  font-size: 13px;
+}
+.colorRow label {
+  margin: 0;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.colorRow input[type='color'] {
+  width: 44px;
+  height: 44px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.colorRow .opacitySetting {
+  grid-column: 1/-1;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.keySoundToggle {
+  align-items: center;
+}
+.keySoundToggle > span:last-child {
+  width: 100%;
+  font-size: 13px;
+  color: var(--subtle);
+}
+
+.settingsDisclosure {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 14px;
+}
+.settingsDisclosure > summary {
+  cursor: pointer;
+  min-height: 48px;
+  padding: 12px 0;
+  font-size: 14px;
+}
+.settingsDisclosure > summary > span {
+  float: right;
+  color: var(--subtle);
+  font-size: 12px;
+}
+.settingsDisclosure[open] {
+  padding-bottom: 16px;
+}
+
+/* Viewport-bound studio: controls / full-height chart / reference. */
+.root.practiceApp {
+  height: 100dvh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.appHeader {
+  flex: none;
+  min-height: 72px;
+  padding: 12px 24px;
+  gap: 24px;
+  box-shadow: 0 1px 0 var(--line);
+  z-index: 5;
+}
+.appActions {
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.root .appActions > button {
+  border-color: transparent;
+  background: transparent;
+}
+.root .appActions > button:hover {
+  background: var(--surface);
+  border-color: var(--line);
+}
+.root .appActions .selectControl > button {
+  background: var(--surface);
+}
+.root .practiceMain {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 16px;
+  overflow: hidden;
+  background: var(--paper);
+}
+.practiceLayout {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr) 260px;
+  gap: 16px;
+}
+.controlColumn {
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  scrollbar-width: thin;
+}
+.controlColumn .loadedPlan {
+  padding: 20px 16px;
+  flex-direction: column;
+  align-items: stretch;
+}
+.controlColumn .loadedPlan h2 {
+  font-size: 22px;
+}
+.controlColumn .loadedPlan > button {
+  margin-top: 10px;
+}
+.controlColumn .practiceToolbar {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+.controlColumn .formatBar {
+  width: 100%;
+}
+.controlColumn .formatBar button {
+  flex: 1;
+  padding: 8px;
+}
+.controlColumn .challengeBar {
+  display: grid;
+}
+.controlColumn .directionControl {
+  margin: 0;
+}
+.controlColumn .controls {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.controlColumn .tempo {
+  flex: auto;
+  width: 100%;
+  max-width: none;
+}
+.controlColumn .tempo label {
+  font-size: 14px;
+}
+.controlColumn .quickSpeed {
+  justify-content: space-between;
+}
+.controlColumn .quickSpeed > span {
+  display: block;
+  font-size: 12px;
+}
+.controlColumn .playButtons {
+  width: 100%;
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: nowrap;
+}
+.controlColumn .playButtons button {
+  flex: 1;
+}
+.controlColumn .fallingReadout,
+.controlColumn .staticReadout {
+  padding: 12px;
+  flex-wrap: wrap;
+}
+.controlColumn .fallingReadout > div {
+  flex-wrap: wrap;
+}
+.controlColumn .chartSettingsBody {
+  grid-template-columns: 1fr;
+  padding: 12px;
+}
+.controlColumn .chartProgress {
+  padding: 12px;
+  font-size: 9px;
+  gap: 8px;
+}
+.controlColumn .lifeBar {
+  padding: 12px;
+  flex-wrap: wrap;
+}
+.controlColumn .lifeBar span {
+  margin: 0;
+}
+.stageUtilities {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid var(--line);
+}
+.practiceColumn {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.trainerHost,
+.trainerHost .workbench {
+  height: 100%;
+  min-height: 0;
+}
+.trainerHost .workbench {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+}
+.trainerHost .fallingBoard {
+  height: auto;
+  flex: 1;
+  min-height: 0;
+}
+.trainerHost .fallingPads {
+  flex: none;
+}
+.trainerHost .fallingNext {
+  flex: none;
+  padding: 12px;
+}
+.trainerHost .staticChart {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+}
+.staticChart .staticRow {
+  height: auto;
+  flex: 1;
+  min-height: 0;
+}
+.staticChart .staticKeys {
+  flex: none;
+  padding: 14px 0;
+}
+.staticRow[data-future='true'] i {
+  opacity: 0.32;
+}
+.staticRow[data-current='true'] i {
+  opacity: 1;
+  box-shadow: 0 0 0 1px var(--key-edge);
+}
+.practiceGuide {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+}
+.practiceGuide .guideCard {
+  padding: 18px;
+}
+.practiceGuide .guideCard h2 {
+  font-size: 18px;
+}
+.practiceGuide .fingerMap {
+  display: block;
+}
+.practiceGuide .fingerMap > div {
+  grid-template-columns: 20px 1fr 1fr;
+}
+.practiceGuide .fingerMap span:last-child {
+  grid-column: auto;
+}
+.resultScreen {
+  height: 100%;
+  min-height: 0 !important;
+  overflow: auto;
+}
+.root .stageFullscreen {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  width: 100vw;
+  padding: 16px;
+  z-index: 100;
+}
+.practiceMain[data-playing='true'] .controlColumn,
+.practiceMain[data-playing='true'] .practiceGuide {
+  filter: blur(2px);
+  opacity: 0.5;
+}
+.practiceMain[data-playing='true']
+  :is(.controlColumn, .practiceGuide):has(:focus-visible) {
+  filter: none;
+  opacity: 1;
+}
+/* Every selected control uses an explicit foreground/background pair. */
+.root button[aria-pressed='true']:not(.startButton),
+.root .formatBar button[aria-pressed='true'],
+.root .selectMenu > button[aria-selected='true'] {
+  background: var(--orange);
+  color: var(--on-orange);
+  border-color: var(--orange);
+}
+.root button[aria-pressed='true']:not(.startButton) > span,
+.root .selectMenu > button[aria-selected='true'] > span {
+  color: inherit;
+}
+.root .selectMenu > button[aria-selected='true']:hover {
+  background: var(--orange);
+  color: var(--on-orange);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .controlColumn,
+  .practiceGuide {
+    transition:
+      filter 180ms ease,
+      opacity 180ms ease;
+  }
+}
+@media (max-width: 1150px) {
+  .practiceLayout {
+    grid-template-columns: 220px minmax(0, 1fr) 220px;
+  }
+  .appIdentity {
+    display: none;
+  }
+}
+@media (max-width: 850px) {
+  .root .practiceMain {
+    overflow: auto;
+    padding: 10px;
+  }
+  .practiceLayout {
+    grid-template-columns: 190px minmax(0, 1fr);
+    grid-template-rows: minmax(400px, 1fr) auto;
+    height: auto;
+    min-height: 100%;
+    gap: 10px;
+  }
+  .practiceColumn {
+    height: calc(100dvh - 110px);
+    min-height: 400px;
+  }
+  .controlColumn {
+    max-height: calc(100dvh - 110px);
+  }
+  .practiceGuide {
+    grid-column: 1/-1;
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .root .stageFullscreen .practiceColumn {
+    height: calc(100dvh - 30px);
+  }
+}
+@media (max-width: 560px) {
+  .appHeader {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .appActions {
+    width: auto;
+    flex: 1;
+    flex-wrap: wrap;
+    margin: 0;
+  }
+  .appBrand strong {
+    font-size: 13px;
+  }
+  .appBrand > span {
+    width: 28px;
+    height: 28px;
+    font-size: 24px;
+  }
+  .appActions .selectControl {
+    min-width: 76px;
+  }
+  .appActions > .selectControl {
+    margin: 0;
+  }
+  .root .appActions button {
+    font-size: 12px;
+    padding: 6px;
+  }
+  .practiceLayout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(400px, 65dvh) auto;
+  }
+  .controlColumn {
+    max-height: none;
+    overflow: visible;
+  }
+  .controlColumn .loadedPlan {
+    padding: 12px;
+    flex-direction: row;
+    align-items: center;
+  }
+  .controlColumn .loadedPlan h2 {
+    font-size: 18px;
+  }
+  .controlColumn .loadedPlan > button {
+    margin: 0;
+  }
+  .controlColumn .practiceToolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .controlColumn .formatBar {
+    grid-column: 1/-1;
+  }
+  .controlColumn .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .controlColumn .playButtons {
+    grid-column: 1/-1;
+  }
+  .stageUtilities {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 10px;
+  }
+  .root .stageUtilities button {
+    font-size: 12px;
+    padding: 6px;
+    min-width: 0;
+  }
+  .practiceColumn,
+  .root .stageFullscreen .practiceColumn {
+    height: 100%;
+    min-height: 400px;
+  }
+  .practiceGuide {
+    grid-template-columns: 1fr;
+  }
+  .practiceMain[data-playing='true'] .controlColumn {
+    filter: none;
+    opacity: 1;
+  }
+}
+
+.root .startButton:hover,
+.root .startButton:focus-visible {
+  background: var(--orange);
+  color: var(--on-orange);
+  border-color: var(--orange);
+}
+
+.tightWindow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--accent);
+  opacity: 0.3;
+  z-index: 1;
+}
+
+/* Adjustable side panels; saved widths are capped by the available viewport. */
+.practiceLayout {
+  grid-template-columns: clamp(
+      180px,
+      var(--left-width, 250px),
+      min(420px, 27%)
+    ) 10px minmax(0, 1fr) 10px clamp(
+      180px,
+      var(--right-width, 260px),
+      min(420px, 27%)
+    );
+  gap: 0;
+}
+.resizeHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+  min-height: 0;
+  outline-offset: -2px;
+}
+.resizeHandle::after {
+  width: 3px;
+  height: 48px;
+  border-radius: 3px;
+  background: var(--line);
+}
+.resizeHandle:hover::after,
+.resizeHandle:focus-visible::after {
+  background: var(--accent);
+}
+.resizeHandle:focus-visible {
+  outline: 2px solid var(--focus);
+}
+@media (max-width: 950px) {
+  .practiceLayout {
+    grid-template-columns: clamp(
+        180px,
+        var(--left-width, 220px),
+        32%
+      ) 10px minmax(0, 1fr);
+    grid-template-rows: minmax(400px, 1fr) auto;
+    height: auto;
+    min-height: 100%;
+  }
+  .root .practiceMain {
+    overflow: auto;
+  }
+  .practiceColumn {
+    height: calc(100dvh - 110px);
+    min-height: 400px;
+  }
+  .controlColumn {
+    max-height: calc(100dvh - 110px);
+  }
+  .practiceGuide {
+    grid-column: 1/-1;
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 12px;
+  }
+  .practiceLayout > .resizeHandle:nth-child(4) {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .practiceLayout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(400px, 65dvh) auto;
+    gap: 10px;
+  }
+  .resizeHandle {
+    display: none;
+  }
+  .controlColumn {
+    max-height: none;
+  }
+  .practiceColumn {
+    height: 100%;
+  }
+  .practiceGuide {
+    grid-template-columns: 1fr;
+    margin-top: 0;
+  }
+}
+
+.resizeHandle {
+  margin: 0;
+  border: 0;
+  width: 10px;
+  height: 100%;
+}
+.resizeHandle::after {
+  content: '';
+}
+
+/* Left panel follows setup → tune → play; playback never scrolls away. */
+.controlColumn {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.controlScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+.controlFooter {
+  flex: none;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  padding: 12px;
+}
+.controlColumn .loadedPlan {
+  padding: 16px;
+  gap: 8px;
+}
+.controlColumn .loadedPlan h2 {
+  font-size: 20px;
+  margin: 6px 0;
+}
+.controlColumn .loadedPlan > button {
+  margin-top: 4px;
+  min-height: 40px;
+  font-size: 13px;
+}
+.controlColumn .practiceToolbar {
+  padding: 12px 16px;
+  gap: 12px;
+}
+.controlLabel {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--subtle);
+  font-size: 12px;
+}
+.controlColumn .challengeBar {
+  gap: 6px;
+}
+.controlColumn .challengeBar .controlLabel {
+  margin-bottom: 0;
+}
+.controlColumn .controls {
+  padding: 16px;
+  gap: 14px;
+}
+.controlColumn .tempo {
+  min-height: 0;
+}
+.controlColumn .tempo input {
+  margin: 4px 0 0;
+}
+.controlColumn .quickSpeed {
+  display: grid;
+  grid-template-columns: 1fr 36px 46px 36px;
+  gap: 4px;
+}
+.controlColumn .controlFooter .playButtons {
+  margin: 0;
+  gap: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 68px;
+}
+.controlColumn .controlFooter .playButtons .startButton {
+  min-height: 48px;
+  font-size: 15px;
+}
+.controlFooter .stageUtilities {
+  padding: 10px 0 0;
+  border: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.controlFooter .stageUtilities > button:first-child {
+  grid-column: 1/-1;
+}
+.root .controlFooter .stageUtilities button {
+  min-height: 36px;
+  font-size: 12px;
+  padding: 6px;
+}
+.controlColumn .staticClock {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 10px;
+}
+.controlColumn .staticClock > span {
+  grid-column: 2;
+}
+@media (max-width: 560px) {
+  .controlColumn {
+    overflow: visible;
+  }
+  .controlScroll {
+    overflow: visible;
+  }
+  .controlColumn .controls {
+    display: flex;
+  }
+  .controlFooter .stageUtilities {
+    grid-template-columns: 1fr 1fr;
+  }
+  .controlColumn .practiceToolbar .directionControl {
+    min-width: 0;
+  }
+}
+
+.controlColumn {
+  height: 100%;
+}
+@media (max-width: 560px) {
+  .controlColumn {
+    height: auto;
+  }
+}

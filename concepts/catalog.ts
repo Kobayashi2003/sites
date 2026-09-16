@@ -1,6 +1,7 @@
 import type { ConceptDefinition } from './types';
+import { concept as dextraConcept } from './dextra';
 
-const allConcepts: ConceptDefinition[] = [];
+const allConcepts: ConceptDefinition[] = [dextraConcept];
 
 export const concepts = allConcepts.filter(
   (concept) => concept.status === 'published',
