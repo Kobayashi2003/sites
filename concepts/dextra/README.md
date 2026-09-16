@@ -56,3 +56,13 @@ No verifiable In Falsus millisecond windows were located. Community references f
 Side panel widths are draggable and persisted in `dextra-panels`. Focus either divider and use arrow keys (Shift for 40px steps), Home/End, or double-click to reset. Widths are capped responsively; below 950px the reference moves below, and below 560px the panels stack. Desktop checks: three-column fullscreen, running blur, hit-window default off, 1440×900 viewport bounds and keyboard resize. 320×800 document bounds also remain within the viewport.
 
 The left sidebar scrolls setup controls independently from its pinned playback footer. Start/Pause precedes End. Fullscreen remains available in the footer; Settings and History shortcuts appear there only while fullscreen hides the header.
+
+## Panel layout update (2026-09-16)
+
+`styles.module.css` was consolidated into one ordered sheet (tokens, base controls, header, layout, left panel, chart stage, right panel, drawer, results, motion, responsive); unused rules were removed. The left panel is grouped into Current exercise, Setup, Tempo (falling), Session and Display, with consistent 16px section padding and a session status card. Survival/timed fields sit side by side only when the panel is wide enough.
+
+Both sidebars collapse into 52px rails, from the toggle in each panel, by pressing Enter on a focused divider, or by dragging a divider narrower than 120px. Dragging back out reopens the panel at 180px or wider; double-click resets width and reopens it. Folded state persists in `dextra-panels` (`leftCollapsed`, `rightCollapsed`) alongside the saved widths. The folded left rail keeps icon-only Start/Pause, End and Fullscreen. Folding is ignored where panels stack: the right panel below 950px, the left panel below 560px.
+
+The right panel adds a Progress card for the loaded exercise, format and challenge. It shows run count, best and last result (accuracy, survival time, active time or groups), and the three most recent runs. Lane key chips use the configured lane colors, and the shared-finger note follows the current mapping.
+
+Fixes: undefined `endButton`/`fallingControls` classes, Static key-row lane tint covering only the label, select labels drifting to the center, a hard-coded shared-pinky note, the dead result min-height state, and Static showing Start instead of Retry after completion.

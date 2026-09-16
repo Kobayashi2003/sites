@@ -23,6 +23,7 @@ import LibraryPanel from '../../features/library/LibraryPanel';
 import SettingsPanel from '../../features/settings/SettingsPanel';
 import ResultDetails from '../../features/results/ResultDetails';
 import PracticeGuide from './PracticeGuide';
+import { focusPanelToggle } from './focusPanelToggle';
 
 type Drawer = 'library' | 'settings' | 'history' | null;
 function validResult(value: unknown): value is Result {
@@ -43,7 +44,13 @@ export default function Dextra() {
   );
 }
 function Workspace() {
-  const { widths, resize } = usePanelWidths();
+  const {
+    widths,
+    collapsed,
+    resize,
+    toggle: togglePanel,
+    reset: resetPanel,
+  } = usePanelWidths();
   const [keys, setKeys] = useState(defaults);
   const [mapping, setMapping] = useState(defaultFingers);
   const [challenge, setChallenge] = useState<'standard' | 'endless'>(
@@ -78,8 +85,6 @@ function Workspace() {
   const backdropPress = useRef(false);
   const dialog = useRef<HTMLDialogElement | null>(null);
   const resultPanel = useRef<HTMLElement | null>(null);
-  const trainerPanel = useRef<HTMLDivElement>(null);
-  const [resultMinHeight, setResultMinHeight] = useState(0);
   const busy = status === 'running' || status === 'paused';
   const selected = programs.find(
     (p) => p.id === (challenge === 'endless' ? 'random' : program),
@@ -112,9 +117,6 @@ function Workspace() {
   }, []);
   const complete = useCallback((value: Result) => {
     const commit = () => {
-      setResultMinHeight(
-        trainerPanel.current?.getBoundingClientRect().height ?? 0,
-      );
       setHistory((rows) => [value, ...rows]);
       setResult(value);
       setStatus('done');
@@ -318,7 +320,7 @@ function Workspace() {
             onChange={(v) => setTheme(v as typeof theme)}
           />
           <button onClick={() => openDrawer('history')}>
-            History <span>{history.length}</span>
+            History <span className={s.countBadge}>{history.length}</span>
           </button>
           <button onClick={() => openDrawer('settings')}>Settings</button>
         </div>
@@ -339,6 +341,8 @@ function Workspace() {
           <div
             className={s.practiceLayout}
             data-result={!!result}
+            data-left-collapsed={collapsed.left}
+            data-right-collapsed={collapsed.right}
             style={
               {
                 '--left-width': `${widths.left}px`,
@@ -346,20 +350,53 @@ function Workspace() {
               } as CSSProperties
             }
           >
-            <aside className={s.controlColumn}>
+            <aside
+              id="dextra-controls"
+              className={s.controlColumn}
+              aria-label="Practice controls"
+              data-collapsed={collapsed.left}
+            >
+              <button
+                className={s.railToggle}
+                aria-expanded="false"
+                aria-controls="dextra-controls"
+                onClick={() => {
+                  togglePanel('left', true);
+                  focusPanelToggle('dextra-controls', s.panelToggle);
+                }}
+              >
+                <Icon name="expandLeft" />
+                <span>Controls</span>
+              </button>
               <div className={s.controlScroll}>
                 <section
                   className={s.loadedPlan}
                   aria-label="Loaded training plan"
                 >
                   <div>
-                    <span className={s.eyebrow}>CURRENT EXERCISE</span>
+                    <div className={s.panelTop}>
+                      <span className={s.eyebrow}>CURRENT EXERCISE</span>
+                      <button
+                        className={s.panelToggle}
+                        aria-label="Collapse controls panel"
+                        aria-expanded="true"
+                        aria-controls="dextra-controls"
+                        title="Collapse panel"
+                        onClick={() => {
+                          togglePanel('left', false);
+                          focusPanelToggle('dextra-controls', s.railToggle);
+                        }}
+                      >
+                        <Icon name="collapseLeft" />
+                      </button>
+                    </div>
                     <h2>{selected.name}</h2>
                     <p>
+                      {format === 'static' ? 'Static' : 'Falling'} ·{' '}
                       {challenge === 'endless'
                         ? format === 'static'
-                          ? `${timeLimit}s · Random`
-                          : `${lives} lives · Random`
+                          ? `${timeLimit}s timed`
+                          : `${lives} ${lives === 1 ? 'life' : 'lives'}`
                         : '32 groups'}
                     </p>
                   </div>
@@ -371,7 +408,13 @@ function Workspace() {
                     Change exercise
                   </button>
                 </section>
-                <div className={s.practiceToolbar}>
+                <section
+                  className={s.panelSection}
+                  aria-labelledby="panel-setup"
+                >
+                  <h3 className={s.panelHeading} id="panel-setup">
+                    Setup
+                  </h3>
                   <div className={s.formatBar} aria-label="Practice format">
                     {(['falling', 'static'] as const).map((value) => (
                       <button
@@ -389,59 +432,78 @@ function Workspace() {
                       </button>
                     ))}
                   </div>
-                  <div className={s.challengeBar}>
-                    <span className={s.controlLabel}>Challenge</span>
-                    <Select
-                      label="Challenge"
-                      icon={
-                        challenge === 'standard'
-                          ? 'play'
-                          : format === 'static'
-                            ? 'clock'
-                            : 'heart'
-                      }
-                      value={challenge}
-                      disabled={busy}
-                      options={[
-                        { value: 'standard', label: 'Standard' },
-                        {
-                          value: 'endless',
-                          label:
-                            format === 'static' ? 'Timed random' : 'Survival',
-                        },
-                      ]}
-                      onChange={(v) => {
-                        setChallenge(v as typeof challenge);
-                        setStatus('idle');
-                        setResult(null);
-                        setRevision((n) => n + 1);
-                      }}
-                    />
-                    {challenge === 'endless' && (
+                  <div
+                    className={
+                      challenge === 'endless' ? s.fieldPair : s.fieldSingle
+                    }
+                  >
+                    <div className={s.field}>
+                      <span className={s.fieldLabel} aria-hidden="true">
+                        Challenge
+                      </span>
                       <Select
-                        label={format === 'static' ? 'Time limit' : 'Lives'}
-                        value={String(format === 'static' ? timeLimit : lives)}
+                        label="Challenge"
+                        icon={
+                          challenge === 'standard'
+                            ? 'play'
+                            : format === 'static'
+                              ? 'clock'
+                              : 'heart'
+                        }
+                        value={challenge}
                         disabled={busy}
-                        options={(format === 'static'
-                          ? [30, 60, 120]
-                          : [1, 3, 5]
-                        ).map((n) => ({
-                          value: String(n),
-                          label:
-                            format === 'static' ? `${n} seconds` : `${n} lives`,
-                        }))}
+                        options={[
+                          { value: 'standard', label: 'Standard' },
+                          {
+                            value: 'endless',
+                            label:
+                              format === 'static' ? 'Timed random' : 'Survival',
+                          },
+                        ]}
                         onChange={(v) => {
-                          if (format === 'static') setTimeLimit(Number(v));
-                          else setLives(Number(v));
+                          setChallenge(v as typeof challenge);
+                          setStatus('idle');
+                          setResult(null);
+                          setRevision((n) => n + 1);
                         }}
                       />
+                    </div>
+                    {challenge === 'endless' && (
+                      <div className={s.field}>
+                        <span className={s.fieldLabel} aria-hidden="true">
+                          {format === 'static' ? 'Time limit' : 'Lives'}
+                        </span>
+                        <Select
+                          label={format === 'static' ? 'Time limit' : 'Lives'}
+                          value={String(
+                            format === 'static' ? timeLimit : lives,
+                          )}
+                          disabled={busy}
+                          options={(format === 'static'
+                            ? [30, 60, 120]
+                            : [1, 3, 5]
+                          ).map((n) => ({
+                            value: String(n),
+                            label:
+                              format === 'static'
+                                ? `${n}s`
+                                : `${n} ${n === 1 ? 'life' : 'lives'}`,
+                          }))}
+                          onChange={(v) => {
+                            if (format === 'static') setTimeLimit(Number(v));
+                            else setLives(Number(v));
+                          }}
+                        />
+                      </div>
                     )}
                   </div>
-                  <div className={s.directionControl}>
-                    <span className={s.controlLabel}>Scroll direction</span>
+                  <div className={s.field}>
+                    <span className={s.fieldLabel} aria-hidden="true">
+                      Scroll direction
+                    </span>
                     <Select
                       icon={direction}
-                      label="Direction"
+                      label="Scroll direction"
                       disabled={busy}
                       value={direction}
                       options={[
@@ -454,7 +516,7 @@ function Workspace() {
                       }}
                     />
                   </div>
-                </div>
+                </section>
                 <div ref={setControls} hidden={!!result} />
               </div>
               <div className={s.controlFooter}>
@@ -463,6 +525,7 @@ function Workspace() {
                   <button
                     ref={stageTrigger}
                     data-exit={stageExpanded || undefined}
+                    title={stageExpanded ? 'Exit fullscreen' : 'Fullscreen'}
                     onClick={() => void toggleStage()}
                   >
                     <Icon name={stageExpanded ? 'close' : 'fullscreen'} />
@@ -470,11 +533,20 @@ function Workspace() {
                   </button>
                   {stageExpanded && (
                     <>
-                      <button onClick={() => openDrawer('settings')}>
+                      <button
+                        title="Settings"
+                        onClick={() => openDrawer('settings')}
+                      >
+                        <Icon name="settings" />
                         Settings
                       </button>
-                      <button onClick={() => openDrawer('history')}>
-                        History · {history.length}
+                      <button
+                        title="History"
+                        onClick={() => openDrawer('history')}
+                      >
+                        <Icon name="history" />
+                        History{' '}
+                        <span className={s.countBadge}>{history.length}</span>
                       </button>
                     </>
                   )}
@@ -483,16 +555,15 @@ function Workspace() {
             </aside>
             <ResizableDivider
               side="left"
+              controls="dextra-controls"
               value={widths.left}
+              collapsed={collapsed.left}
               onChange={(value) => resize('left', value)}
+              onToggle={() => togglePanel('left')}
+              onReset={() => resetPanel('left')}
             />
             <div className={s.practiceColumn}>
-              <div
-                className={s.trainerHost}
-                ref={trainerPanel}
-                hidden={!!result}
-              >
-                {' '}
+              <div className={s.trainerHost} hidden={!!result}>
                 {format === 'falling' ? (
                   <FallingTrainer
                     initialBpm={initialBpm}
@@ -526,7 +597,6 @@ function Workspace() {
               {result && (
                 <section
                   className={s.resultScreen}
-                  style={{ minHeight: resultMinHeight || undefined }}
                   ref={resultPanel}
                   tabIndex={-1}
                   aria-label="Result"
@@ -574,14 +644,24 @@ function Workspace() {
             </div>
             <ResizableDivider
               side="right"
+              controls="dextra-guide"
               value={widths.right}
+              collapsed={collapsed.right}
               onChange={(value) => resize('right', value)}
+              onToggle={() => togglePanel('right')}
+              onReset={() => resetPanel('right')}
             />
             <PracticeGuide
               keys={keys}
               mapping={mapping}
               description={selected.description}
               format={format}
+              challenge={challenge}
+              mode={selected.name}
+              history={history}
+              collapsed={collapsed.right}
+              onCollapse={(open) => togglePanel('right', open)}
+              onHistory={() => openDrawer('history')}
               onSettings={() => openDrawer('settings')}
               onLibrary={() => openDrawer('library')}
             />
@@ -694,10 +774,6 @@ function Workspace() {
                       <button
                         key={`${r.date}-${i}`}
                         onClick={() => {
-                          setResultMinHeight(
-                            trainerPanel.current?.getBoundingClientRect()
-                              .height ?? 0,
-                          );
                           setResult(r);
                           setDrawer(null);
                           requestAnimationFrame(() => {

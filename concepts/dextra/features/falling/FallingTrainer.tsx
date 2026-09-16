@@ -279,13 +279,14 @@ export default function FallingTrainer({
       data-display-ready={preferencesReady}
     >
       <StageControls>
-        <div className={`${s.controls} ${s.fallingControls}`}>
+        <section className={s.panelSection} aria-labelledby="panel-tempo">
+          <h3 className={s.panelHeading} id="panel-tempo">
+            Tempo
+          </h3>
           <div className={s.tempo}>
             <label htmlFor="falling-tempo">
-              Tempo{' '}
-              <strong>
-                {bpm} <small>BPM</small>
-              </strong>
+              <span>BPM</span>
+              <strong>{bpm}</strong>
             </label>
             <input
               id="falling-tempo"
@@ -300,79 +301,115 @@ export default function FallingTrainer({
           </div>
           <div className={s.quickSpeed}>
             <span>Scroll speed</span>
-            <button
-              aria-label="Decrease scroll speed"
-              disabled={reduced || speed <= 0.5}
-              onClick={() => {
-                if (status === 'running') onStatus('paused');
-                setSpeed((v) => Math.max(0.5, v - 0.25));
-              }}
-            >
-              −
-            </button>
-            <output>{speed.toFixed(2)}×</output>
-            <button
-              aria-label="Increase scroll speed"
-              disabled={reduced || speed >= 4}
-              onClick={() => {
-                if (status === 'running') onStatus('paused');
-                setSpeed((v) => Math.min(4, v + 0.25));
-              }}
-            >
-              +
-            </button>
-          </div>
-          <StageControls slot="playback">
-            <div className={s.playButtons}>
-              <button className={s.startButton} onClick={togglePlayback}>
-                <Icon name={status === 'running' ? 'pause' : 'play'} />
-                {status === 'running'
-                  ? 'Pause'
-                  : status === 'paused'
-                    ? 'Resume'
-                    : status === 'done'
-                      ? 'Retry'
-                      : 'Start'}
-              </button>
+            <div className={s.stepper}>
               <button
-                className={s.endButton}
-                disabled={!busy}
+                aria-label="Decrease scroll speed"
+                disabled={reduced || speed <= 0.5}
                 onClick={() => {
-                  onStatus('idle');
+                  if (status === 'running') onStatus('paused');
+                  setSpeed((v) => Math.max(0.5, v - 0.25));
                 }}
               >
-                <Icon name="stop" />
-                End
+                −
+              </button>
+              <output>{speed.toFixed(2)}×</output>
+              <button
+                aria-label="Increase scroll speed"
+                disabled={reduced || speed >= 4}
+                onClick={() => {
+                  if (status === 'running') onStatus('paused');
+                  setSpeed((v) => Math.min(4, v + 0.25));
+                }}
+              >
+                +
               </button>
             </div>
-          </StageControls>
-        </div>
-        <div className={s.fallingReadout}>
-          <div>
-            <strong>
-              {status === 'idle'
-                ? 'Ready'
-                : status === 'paused'
-                  ? 'Paused'
-                  : status === 'done'
-                    ? 'Complete'
-                    : view.elapsed < LEAD_IN
-                      ? `Ready in ${Math.ceil((LEAD_IN - view.elapsed) / 1000)}`
-                      : view.feedback}
-            </strong>
-            <output aria-live="polite">
-              {status === 'running' && view.elapsed >= LEAD_IN
-                ? `${stats.combo} streak`
-                : status === 'paused'
-                  ? 'Resume to continue'
-                  : '3s lead-in'}
-            </output>
           </div>
-          <span>
-            {stats.judged}
-            {challenge === 'endless' ? ' groups' : ' / 32'}
-          </span>
-        </div>
+        </section>
+        <StageControls slot="playback">
+          <div className={s.playButtons}>
+            <button className={s.startButton} onClick={togglePlayback}>
+              <Icon name={status === 'running' ? 'pause' : 'play'} />
+              {status === 'running'
+                ? 'Pause'
+                : status === 'paused'
+                  ? 'Resume'
+                  : status === 'done'
+                    ? 'Retry'
+                    : 'Start'}
+            </button>
+            <button
+              className={s.endButton}
+              disabled={!busy}
+              onClick={() => {
+                onStatus('idle');
+              }}
+            >
+              <Icon name="stop" />
+              End
+            </button>
+          </div>
+        </StageControls>
+        <section className={s.panelSection} aria-labelledby="panel-session">
+          <h3 className={s.panelHeading} id="panel-session">
+            Session
+          </h3>
+          <div className={s.sessionCard}>
+            <div className={s.fallingReadout}>
+              <div>
+                <strong>
+                  {status === 'idle'
+                    ? 'Ready'
+                    : status === 'paused'
+                      ? 'Paused'
+                      : status === 'done'
+                        ? 'Complete'
+                        : view.elapsed < LEAD_IN
+                          ? `Ready in ${Math.ceil((LEAD_IN - view.elapsed) / 1000)}`
+                          : view.feedback}
+                </strong>
+                <output aria-live="polite">
+                  {status === 'running' && view.elapsed >= LEAD_IN
+                    ? `${stats.combo} streak`
+                    : status === 'paused'
+                      ? 'Resume to continue'
+                      : '3s lead-in'}
+                </output>
+              </div>
+              <span>
+                {stats.judged}
+                {challenge === 'endless' ? ' groups' : ' / 32'}
+              </span>
+            </div>
+            {challenge === 'endless' ? (
+              <div className={s.lifeBar}>
+                <Icon name="heart" />
+                <strong>
+                  {view.lives} / {limit}
+                </strong>
+                <span>Miss or Extra costs a life</span>
+              </div>
+            ) : (
+              <div className={s.chartProgress}>
+                <span>
+                  Phrase {Math.min(4, Math.floor(stats.judged / 8) + 1)}/4
+                </span>
+                <progress
+                  max={32}
+                  value={stats.judged}
+                  aria-label="Chart progress"
+                />
+                <span>{stats.judged ? `${stats.accuracy}%` : '—'}</span>
+              </div>
+            )}
+          </div>
+          {reduced && (
+            <p className={s.motionNote}>
+              Reduced motion: fixed note previews. Press when the countdown
+              reaches zero.
+            </p>
+          )}
+        </section>
         <details
           ref={displaySettings}
           className={s.chartSettings}
@@ -382,9 +419,11 @@ export default function FallingTrainer({
           }}
         >
           <summary>
-            <span>Chart</span>
+            <span>Display</span>
             <span>
-              Full-height chart <b>⌄</b>
+              {reduced ? 'Fixed' : `${speed.toFixed(2)}×`} · Window{' '}
+              {showWindow ? 'on' : 'off'}
+              <b aria-hidden="true">⌄</b>
             </span>
           </summary>
           <div className={s.chartSettingsBody}>
@@ -426,42 +465,20 @@ export default function FallingTrainer({
                   type="checkbox"
                   checked={showWindow}
                   onChange={(e) => setShowWindow(e.target.checked)}
-                />{' '}
+                />
                 Show hit window
               </label>
               <p>
                 The outer band marks Far; the inner band marks Pure. Aim for the
                 center line for Pure+.
               </p>
-              <span className={s.chartSettingsNote}>
+              <p>
                 Display settings never change BPM or scoring. Opening this panel
                 pauses your session.
-              </span>
+              </p>
             </div>
           </div>
         </details>
-        {challenge === 'endless' && (
-          <div className={s.lifeBar}>
-            <Icon name="heart" />
-            <strong>
-              {view.lives} / {limit}
-            </strong>
-            <span>Miss or Extra costs one life</span>
-          </div>
-        )}
-        <div hidden={challenge === 'endless'} className={s.chartProgress}>
-          <span>
-            PHRASE {Math.min(4, Math.floor(stats.judged / 8) + 1)} / 4
-          </span>
-          <progress max={32} value={stats.judged} aria-label="Chart progress" />
-          <span>{stats.judged ? `${stats.accuracy}%` : '—'}</span>
-        </div>
-        {reduced && (
-          <p className={s.motionNote}>
-            Reduced motion: fixed note previews. Press when the countdown
-            reaches zero.
-          </p>
-        )}
       </StageControls>
       <div
         className={s.fallingBoard}

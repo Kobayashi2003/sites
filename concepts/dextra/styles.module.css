@@ -1,4 +1,11 @@
-/* Local design tokens. All surfaces inherit the selected appearance. */
+/*
+ * DEXTRA / SIX
+ * 1. Tokens  2. Base controls  3. Header  4. Studio layout
+ * 5. Left panel  6. Chart stage  7. Right panel  8. Drawer & settings
+ * 9. Results  10. Motion  11. Responsive
+ */
+
+/* 1. Tokens. All surfaces inherit the selected appearance. */
 .root {
   --paper: #f1f3f7;
   --surface: #ffffff;
@@ -16,8 +23,9 @@
   --target-ink: #254fb3;
   --pressed: #d1e0ff;
   --focus: #315fd6;
+  --shadow: 0 1px 2px #0b1b3a0a, 0 8px 24px #0b1b3a08;
+  --panel-pad: 16px;
   color-scheme: light;
-  min-height: 100dvh;
   background: var(--paper);
   color: var(--ink);
   font:
@@ -42,6 +50,7 @@
   --target-ink: #bed0ff;
   --pressed: #354f7f;
   --focus: #a9c1ff;
+  --shadow: 0 1px 2px #0000002e;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -62,9 +71,12 @@
     --target-ink: #bed0ff;
     --pressed: #354f7f;
     --focus: #a9c1ff;
+    --shadow: 0 1px 2px #0000002e;
     color-scheme: dark;
   }
 }
+
+/* 2. Base controls. */
 .root button,
 .root select,
 .root input {
@@ -91,6 +103,10 @@
   opacity: 0.45;
   cursor: default;
 }
+.root button:disabled:hover {
+  background: var(--surface);
+  border-color: var(--line);
+}
 .root :is(button, a, input, select, summary):focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
@@ -105,48 +121,175 @@
   accent-color: var(--accent);
   width: 100%;
   min-height: 24px;
+  margin: 0;
 }
 .root input[type='checkbox'] {
   accent-color: var(--accent);
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex: none;
 }
 .root kbd {
   font-family: var(--font-geist-mono), monospace;
 }
-.practiceApp {
+.root progress {
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 4px;
+  border: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--line);
+  accent-color: var(--accent);
+}
+.root progress::-webkit-progress-bar {
+  background: var(--line);
+}
+.root progress::-webkit-progress-value {
+  background: var(--accent);
+  border-radius: 4px;
+}
+.root progress::-moz-progress-bar {
+  background: var(--accent);
+}
+.eyebrow {
   display: block;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 1.6px;
+}
+.countBadge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--subtle);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.root .startButton {
+  background: var(--orange);
+  color: var(--on-orange);
+  border-color: var(--orange);
+  min-width: 90px;
+  font-weight: 600;
+}
+.root .startButton:hover,
+.root .startButton:focus-visible {
+  background: var(--orange);
+  color: var(--on-orange);
+  border-color: var(--orange);
+  filter: brightness(1.08);
+}
+.root .endButton {
+  color: var(--subtle);
+}
+.root .endButton:not(:disabled):hover {
+  color: var(--ink);
+}
+/* Every selected control uses an explicit foreground/background pair. */
+.root button[aria-pressed='true']:not(.startButton),
+.root .selectMenu > button[aria-selected='true'],
+.root .selectMenu > button[aria-selected='true']:hover {
+  background: var(--orange);
+  color: var(--on-orange);
+  border-color: var(--orange);
+}
+
+/* Themed select. */
+.selectControl {
+  position: relative;
+  min-width: 100px;
+}
+.root .selectControl > button {
+  width: 100%;
+  justify-content: flex-start;
+  font-size: 14px;
+}
+.selectControl > button > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.selectControl > button > svg:last-child {
+  color: var(--subtle);
+}
+.selectMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 260px;
+  max-height: 240px;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 12px 32px #00000026;
+  z-index: 50;
+}
+.selectMenu[data-above='true'] {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.root .selectMenu > button {
+  width: 100%;
+  min-height: 38px;
+  border: 0;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+/* 3. Header. */
+.root.practiceApp {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .appHeader {
-  min-height: 84px;
-  padding: 18px max(24px, calc((100vw - 1440px) /2));
+  flex: none;
+  min-height: 64px;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  gap: 32px;
+  z-index: 5;
 }
 .appBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   color: var(--ink);
   text-decoration: none;
-  display: flex;
-  gap: 12px;
-  align-items: center;
   white-space: nowrap;
 }
 .appBrand > span {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
   background: var(--accent);
   color: var(--surface);
-  font-size: 30px;
+  font-size: 28px;
   line-height: 1;
 }
 .appBrand strong {
-  font-size: 19px;
+  font-size: 18px;
   letter-spacing: 1px;
 }
 .brandSuffix {
@@ -162,364 +305,397 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
 }
-.appActions button > span:not(:only-child) {
-  font-variant-numeric: tabular-nums;
+.root .appActions > button {
+  min-height: 38px;
+  border-color: transparent;
+  background: transparent;
+  font-size: 14px;
 }
-.practiceMain {
-  max-width: 1440px;
-  padding: 44px 28px 24px;
-  margin: auto;
+.root .appActions > button:hover {
+  background: var(--surface);
+  border-color: var(--line);
 }
-.workspaceHeading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 32px;
+.root .appActions .selectControl > button {
+  min-height: 38px;
+  background: var(--surface);
 }
-.eyebrow {
-  display: block;
-  color: var(--accent);
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 1.6px;
-}
-.workspaceHeading h1 {
-  font-size: clamp(28px, 3vw, 42px);
-  line-height: 1.15;
-  letter-spacing: -1.6px;
-  font-weight: 550;
-  margin: 12px 0;
-}
-.workspaceHeading p {
-  color: var(--subtle);
+
+/* 4. Studio layout: controls / full-height chart / reference. */
+.root .practiceMain {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   margin: 0;
-}
-.sessionCount {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  max-width: 190px;
-}
-.sessionCount strong {
-  font-size: 42px;
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
-}
-.sessionCount span {
-  font-size: 13px;
-  color: var(--subtle);
-  max-width: 90px;
+  padding: 16px;
+  overflow: hidden;
+  background: var(--paper);
 }
 .practiceLayout {
+  /* Saved widths are capped by the available viewport. */
+  --left-col: clamp(180px, var(--left-width, 250px), min(420px, 27%));
+  --right-col: clamp(180px, var(--right-width, 260px), min(420px, 27%));
+  height: 100%;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 290px;
-  align-items: start;
-  gap: 24px;
+  grid-template-columns: var(--left-col) 12px minmax(0, 1fr) 12px var(
+      --right-col
+    );
+}
+.controlColumn,
+.practiceColumn,
+.guideCard {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 .practiceColumn {
+  height: 100%;
   min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-  box-shadow: 0 8px 32px #07152d05;
+  min-height: 0;
+  overflow: hidden;
 }
-.loadedPlan {
-  padding: 24px;
+.resizeHandle {
+  width: 12px;
+  height: 100%;
+  min-height: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: center;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+  border-radius: 6px;
+  outline-offset: -2px;
+}
+.resizeHandle::after {
+  content: '';
+  width: 3px;
+  height: 40px;
+  border-radius: 3px;
+  background: var(--line);
+}
+.resizeHandle:hover::after,
+.resizeHandle:focus-visible::after {
+  background: var(--accent);
+}
+.root .resizeHandle:focus-visible {
+  outline: 2px solid var(--focus);
+}
+.root .stageFullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  padding: 16px;
+  z-index: 100;
+}
+/* Running dims the sidebars; keyboard focus restores legibility. */
+.practiceMain[data-playing='true'] :is(.controlColumn, .practiceGuide) {
+  filter: blur(2px);
+  opacity: 0.5;
+}
+.practiceMain[data-playing='true']
+  :is(.controlColumn, .practiceGuide):has(:focus-visible) {
+  filter: none;
+  opacity: 1;
+}
+
+/* 5. Left panel: setup → tune → session; playback never scrolls away. */
+.controlColumn {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.controlScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+.loadedPlan {
+  padding: var(--panel-pad);
+  display: grid;
+  gap: 12px;
 }
 .loadedPlan h2 {
-  font-size: 24px;
+  margin: 6px 0 2px;
+  font-size: 20px;
   line-height: 1.25;
-  font-weight: 550;
-  letter-spacing: -0.6px;
-  margin: 6px 0;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  overflow-wrap: anywhere;
 }
 .loadedPlan p {
   margin: 0;
   color: var(--subtle);
-  font-size: 14px;
+  font-size: 13px;
 }
-.practiceToolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+.root .loadedPlan > button {
+  width: 100%;
+  min-height: 38px;
+  font-size: 13px;
+}
+.panelSection {
+  display: grid;
   gap: 12px;
-  padding: 16px 24px;
+  padding: var(--panel-pad);
   border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
 }
-.formatBar {
-  display: flex;
-  padding: 4px;
-  gap: 4px;
-  background: var(--soft);
-  border-radius: 10px;
+.panelHeading {
+  margin: 0;
+  color: var(--subtle);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
 }
-.root .formatBar button {
-  border: 0;
-  min-height: 36px;
-  background: transparent;
-  font-size: 14px;
-  padding: 6px 18px;
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
 }
-.root .formatBar button[aria-pressed='true'] {
-  background: var(--surface);
-  color: var(--accent);
-  box-shadow: 0 2px 5px #0000000c;
+.fieldLabel {
+  color: var(--subtle);
+  font-size: 12px;
+  line-height: 1.3;
 }
-.challengeBar {
-  display: flex;
-  flex-wrap: wrap;
+.fieldSingle {
+  display: grid;
+}
+.fieldPair {
+  display: grid;
+  /* Side by side only when both labels fit; otherwise stack. */
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
   gap: 8px;
 }
-.directionControl {
-  margin-left: auto;
+.controlColumn .selectControl {
+  min-width: 0;
 }
-.selectControl {
-  position: relative;
-  min-width: 100px;
+.root .controlColumn .selectControl > button {
+  min-height: 40px;
+  padding: 6px 10px;
 }
-.selectControl > button {
-  width: 100%;
-  justify-content: space-between;
-  font-size: 14px;
-}
-.selectMenu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  min-width: 100%;
-  width: max-content;
-  max-width: 260px;
-  padding: 5px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  box-shadow: 0 12px 32px #00000026;
-  z-index: 50;
-  max-height: 240px;
-  overflow-y: auto;
-}
-.selectMenu[data-above='true'] {
-  top: auto;
-  bottom: calc(100% + 6px);
-}
-.root .selectMenu > button {
-  width: 100%;
-  border: 0;
-  justify-content: space-between;
-  font-size: 14px;
-}
-.root .selectMenu > button[aria-selected='true'] {
-  background: var(--selected);
-  color: var(--accent);
-}
-.practiceGuide {
+.formatBar {
   display: grid;
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--soft);
 }
-.guideCard {
-  border: 1px solid var(--line);
-  background: var(--surface);
-  padding: 24px;
-  border-radius: 14px;
-}
-.guideCard h2 {
-  font-size: 19px;
-  letter-spacing: -0.4px;
-  margin: 14px 0 10px;
-  font-weight: 550;
-}
-.guideCard p {
-  color: var(--subtle);
-  font-size: 14px;
-  line-height: 1.7;
-  margin: 14px 0;
-}
-.root .guideCard button {
-  padding: 8px 0;
+.root .formatBar button {
+  min-height: 34px;
+  padding: 4px 8px;
   border: 0;
   background: transparent;
-  color: var(--accent);
-  width: 100%;
-  justify-content: space-between;
   font-size: 14px;
 }
-.fingerMap {
-  margin-top: 16px;
-}
-.fingerMap > div {
-  display: grid;
-  grid-template-columns: 26px 1fr 1fr;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--line);
-}
-.fingerMap span {
-  font-size: 12px;
-  color: var(--subtle);
-}
-.fingerMap span:last-child {
-  text-align: right;
-}
-.fingerMap kbd {
-  border: 1px solid var(--key-edge);
-  border-bottom-width: 3px;
-  border-radius: 5px;
-  padding: 3px 8px;
-  background: var(--key);
-  font-size: 12px;
-  text-align: center;
-}
-.guideTip {
-  border-left: 2px solid var(--accent);
-  padding-left: 12px;
-  font-size: 13px;
-  color: var(--subtle);
-}
-.workspaceFooter {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 24px 0 0;
-  color: var(--subtle);
-  font-size: 12px;
-}
-/* Trainer controls and shared chart presentation. */
-.workbench {
+.root .formatBar button:not([aria-pressed='true']):not(:disabled):hover {
   background: var(--surface);
-  border-radius: 0 0 16px 16px;
-  overflow: hidden;
 }
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: center;
-  padding: 20px 24px;
+.root .formatBar button[aria-pressed='true'] {
+  box-shadow: 0 1px 3px #0000001a;
 }
 .tempo {
-  flex: 1 1 135px;
-  max-width: 190px;
+  display: grid;
+  gap: 6px;
 }
 .tempo label {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
-  font-size: 13px;
+  gap: 8px;
+  color: var(--subtle);
+  font-size: 12px;
 }
 .tempo strong {
+  color: var(--ink);
+  font-size: 20px;
   font-weight: 600;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
-}
-.tempo small {
-  font-size: 10px;
-  color: var(--subtle);
 }
 .quickSpeed {
   display: flex;
-  gap: 6px;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 .quickSpeed > span {
-  display: none;
+  color: var(--subtle);
+  font-size: 12px;
 }
-.root .quickSpeed button {
-  min-width: 36px;
-  padding: 5px;
+.stepper {
+  display: grid;
+  grid-template-columns: 32px 54px 32px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
 }
-.quickSpeed output {
-  min-width: 44px;
+.root .stepper button {
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--soft);
+  font-size: 16px;
+}
+.root .stepper button:not(:disabled):hover {
+  background: var(--selected);
+}
+.stepper output {
   text-align: center;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
-.root .soundButton {
-  font-size: 13px;
-}
-.playButtons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-left: auto;
-}
-.root .playButtons button {
-  font-size: 13px;
-  padding: 8px 12px;
-}
-.root .startButton {
-  background: var(--orange);
-  color: var(--on-orange);
-  border-color: var(--orange);
-  min-width: 90px;
-  font-weight: 600;
-}
-.root .startButton:hover {
-  filter: brightness(1.08);
-}
-.fallingReadout,
-.staticReadout {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 24px;
-  background: var(--soft);
-  border-block: 1px solid var(--line);
-  font-size: 13px;
+.sessionCard {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
   font-variant-numeric: tabular-nums;
 }
-.fallingReadout > div {
+.fallingReadout {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.fallingReadout > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 .fallingReadout strong {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
+  line-height: 1.3;
+  text-transform: capitalize;
 }
 .fallingReadout output,
-.staticReadout {
+.fallingReadout > span {
   color: var(--subtle);
+  font-size: 12px;
+}
+.fallingReadout > span {
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.chartProgress {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  color: var(--subtle);
+  font-size: 11px;
+}
+.lifeBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 13px;
+}
+.lifeBar > svg {
+  color: var(--accent);
+}
+.lifeBar span {
+  width: 100%;
+  color: var(--subtle);
+  font-size: 12px;
+}
+.staticClock {
+  display: grid;
+  gap: 2px;
+}
+.staticClock span {
+  color: var(--subtle);
+  font-size: 12px;
+}
+.staticClock strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.staticClock svg {
+  color: var(--accent);
+}
+.staticReadout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 8px;
+  color: var(--subtle);
+  font-size: 12px;
+}
+.motionNote {
+  display: block;
+  margin: 0;
+  color: var(--subtle);
+  font-size: 12px;
+  line-height: 1.5;
 }
 .chartSettings {
-  border-bottom: 1px solid var(--line);
+  border-top: 1px solid var(--line);
 }
 .chartSettings summary {
+  min-height: 44px;
+  padding: 10px var(--panel-pad);
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 24px;
+  gap: 8px;
   cursor: pointer;
   list-style: none;
   font-size: 13px;
-  min-height: 44px;
+  font-weight: 600;
 }
 .chartSettings summary::-webkit-details-marker {
   display: none;
 }
+.chartSettings summary:hover {
+  background: var(--paper);
+}
 .chartSettings summary > span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--subtle);
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
 }
 .chartSettings summary b {
   display: inline-block;
-  margin-left: 12px;
+  line-height: 1;
 }
 .chartSettings[open] summary b {
   transform: rotate(180deg);
 }
 .chartSettingsBody {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-  padding: 16px 24px 24px;
+  gap: 16px;
+  padding: 4px var(--panel-pad) var(--panel-pad);
+}
+.chartSetting {
+  display: grid;
+  gap: 8px;
 }
 .chartSetting label {
   display: flex;
@@ -527,54 +703,186 @@
   gap: 8px;
   font-size: 13px;
 }
-.chartSetting p,
-.chartSettingsNote {
-  font-size: 12px;
+.chartSetting p {
+  margin: 0;
   color: var(--subtle);
-}
-.speedPresets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.root .speedPresets button,
-.root .autoHeight {
   font-size: 12px;
-  padding: 6px 10px;
-}
-.root button[aria-pressed='true']:not(.startButton) {
-  color: var(--accent);
-  background: var(--selected);
 }
 .chartSetting .windowToggle {
   justify-content: flex-start;
   align-items: center;
+  cursor: pointer;
 }
-.chartProgress {
+.speedPresets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+.root .speedPresets button {
+  min-height: 32px;
+  padding: 4px;
+  font-size: 12px;
+}
+.controlFooter {
+  flex: none;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.playButtons {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.root .playButtons .startButton {
+  min-width: 0;
+  min-height: 46px;
+  font-size: 15px;
+}
+.root .playButtons .endButton {
+  min-height: 46px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.stageUtilities {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.stageUtilities > button:first-child {
+  grid-column: 1/-1;
+}
+.root .stageUtilities button {
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px;
+  font-size: 12px;
+}
+
+/* Collapsible panels: a toggle in each panel, a 52px rail when folded. */
+.panelTop {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 24px;
-  font-size: 10px;
-  letter-spacing: 1px;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -6px -6px 0 0;
+}
+.root .panelToggle {
+  flex: none;
+  width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
   color: var(--subtle);
 }
-.chartProgress progress {
+.root .panelToggle:hover {
+  color: var(--ink);
+}
+.guideTop {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 0 0 4px;
+}
+.root .railToggle {
+  display: none;
   flex: 1;
-  min-width: 0;
-  height: 3px;
+  width: 100%;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 14px 0;
   border: 0;
-  background: var(--soft);
-  accent-color: var(--accent);
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
 }
-.chartProgress progress::-webkit-progress-bar {
-  background: var(--soft);
+.root .railToggle:hover {
+  background: var(--paper);
 }
-.chartProgress progress::-webkit-progress-value {
-  background: var(--accent);
+.railToggle > span {
+  writing-mode: vertical-rl;
+  color: var(--subtle);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+@media (min-width: 561px) {
+  .practiceLayout[data-left-collapsed='true'] {
+    --left-col: 52px;
+  }
+  .controlColumn[data-collapsed='true'] .controlScroll {
+    display: none;
+  }
+  .root .controlColumn[data-collapsed='true'] .railToggle {
+    display: flex;
+  }
+  .controlColumn[data-collapsed='true'] .controlFooter {
+    padding: 8px 6px;
+    gap: 6px;
+  }
+  .controlColumn[data-collapsed='true'] :is(.playButtons, .stageUtilities) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  /* Icon-only playback; labels stay in the accessibility tree. */
+  .root
+    .controlColumn[data-collapsed='true']
+    :is(.playButtons, .stageUtilities)
+    button {
+    min-width: 0;
+    min-height: 38px;
+    padding: 0;
+    gap: 0;
+    font-size: 0;
+  }
+  .controlColumn[data-collapsed='true'] .countBadge {
+    display: none;
+  }
+}
+@media (min-width: 951px) {
+  .practiceLayout[data-right-collapsed='true'] {
+    --right-col: 52px;
+  }
+  .practiceGuide[data-collapsed='true'] {
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .practiceGuide[data-collapsed='true'] > :not(.railToggle) {
+    display: none;
+  }
+  .root .practiceGuide[data-collapsed='true'] .railToggle {
+    display: flex;
+  }
+}
+
+/* 6. Chart stage. The timing engine owns note positions. */
+.trainerHost {
+  height: 100%;
+  min-height: 0;
+}
+.workbench {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
 }
 .fallingBoard {
-  height: clamp(240px, 36vh, 390px);
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   position: relative;
@@ -585,12 +893,13 @@
 .fallingColumn {
   position: relative;
   border-right: 1px solid var(--line);
+  background-color: var(--lane-tint, transparent);
 }
 .fallingColumn:last-child {
   border: 0;
 }
 .columnPressed {
-  background: var(--selected);
+  background-image: linear-gradient(var(--key-tint), var(--key-tint));
 }
 .columnLabel {
   position: absolute;
@@ -608,7 +917,7 @@
   width: 70%;
   height: 14px;
   border-radius: 4px;
-  background: var(--accent);
+  background: var(--note-color, var(--accent));
   color: var(--surface);
   font-size: 10px;
   line-height: 14px;
@@ -616,9 +925,6 @@
   transform: translateY(-50%);
   box-shadow: 0 3px 0 var(--key-edge);
   z-index: 4;
-}
-.fallingNote[data-chord='true'] {
-  background: var(--target-ink);
 }
 .noteDue {
   box-shadow: 0 0 0 3px var(--pressed);
@@ -634,7 +940,7 @@
 }
 .judgementLine span {
   position: absolute;
-  right: 5px;
+  right: 6px;
   top: 4px;
   color: var(--accent);
   font-size: 9px;
@@ -653,6 +959,14 @@
   left: 0;
   right: 0;
   background: var(--pressed);
+}
+.tightWindow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--accent);
+  opacity: 0.3;
+  z-index: 1;
 }
 .beatGuide {
   position: absolute;
@@ -707,6 +1021,7 @@
   top: 18%;
 }
 .fallingPads {
+  flex: none;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   border-block: 1px solid var(--line);
@@ -716,19 +1031,21 @@
   flex-direction: column;
   align-items: center;
   gap: 5px;
-  padding: 16px 4px;
+  padding: 14px 4px;
   border-right: 1px solid var(--line);
+  background-color: var(--lane-tint, transparent);
 }
 .fallingPads > div:last-child {
   border: 0;
 }
 .fallingPads kbd {
-  background: var(--key);
+  min-width: 42px;
+  max-width: 100%;
+  padding: 6px 8px;
   border: 1px solid var(--key-edge);
   border-bottom-width: 3px;
   border-radius: 7px;
-  min-width: 42px;
-  padding: 6px 8px;
+  background: linear-gradient(var(--key-tint), var(--key-tint)), var(--key);
   text-align: center;
   font-size: 12px;
 }
@@ -736,58 +1053,30 @@
   font-size: 11px;
   color: var(--subtle);
 }
-.fallingPadPressed {
-  background: var(--selected);
-}
-.fallingPadPressed kbd {
+.fallingPads .fallingPadPressed kbd {
   transform: translateY(2px);
   border-bottom-width: 1px;
   color: var(--accent);
+  background: linear-gradient(var(--key-active), var(--key-active)), var(--key);
 }
 .fallingNext {
+  flex: none;
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 24px;
+  padding: 10px 14px;
   font-size: 11px;
   color: var(--subtle);
   font-variant-numeric: tabular-nums;
 }
-.motionNote {
-  margin: 0;
-  padding: 12px 24px;
-  font-size: 13px;
-  color: var(--subtle);
-}
-.lifeBar {
-  display: flex;
-  gap: 10px;
-  padding: 12px 24px;
-  align-items: center;
-  font-size: 13px;
-}
-.lifeBar span {
-  color: var(--subtle);
-  margin-left: auto;
-}
-.staticClock {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-}
-.staticClock strong {
-  font-size: 22px;
-  font-variant-numeric: tabular-nums;
-  min-width: 80px;
-}
-.staticClock span {
-  color: var(--subtle);
+.workbench > .motionNote {
+  padding: 8px 14px;
 }
 .staticChart {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 12px 0;
   background: var(--paper);
 }
 .staticKeys,
@@ -797,97 +1086,200 @@
   text-align: center;
 }
 .staticKeys {
-  padding: 14px 0;
-  font-size: 12px;
+  flex: none;
   color: var(--subtle);
+  font-size: 12px;
 }
 .staticChart[data-direction='down'] .staticKeys {
   order: 1;
+  border-top: 1px solid var(--line);
+}
+.staticKeys > span {
+  padding: 12px 4px;
+  border-right: 1px solid var(--line);
+  background-color: var(--lane-tint, transparent);
 }
 .staticRow {
-  height: 38px;
+  flex: 1;
+  min-height: 0;
   border-top: 1px solid var(--line);
+}
+.staticChart[data-direction='down'] .staticKeys + .staticRow {
+  border-top: 0;
 }
 .staticRow > span {
   display: grid;
   place-items: center;
   border-right: 1px solid var(--line);
+  background-color: var(--lane-tint, transparent);
+}
+.staticKeys > span:last-child,
+.staticRow > span:last-child {
+  border-right: 0;
 }
 .staticRow i {
   width: 60%;
   height: 10px;
   border-radius: 4px;
-  background: var(--key-edge);
+  background: var(--note-color, var(--accent));
 }
 .staticRow[data-current='true'] {
   background: var(--target);
   box-shadow: inset 3px 0 var(--accent);
 }
 .staticRow[data-current='true'] i {
-  background: var(--accent);
+  opacity: 1;
+  box-shadow: 0 0 0 1px var(--key-edge);
+}
+.staticRow[data-future='true'] i {
+  opacity: 0.32;
 }
 .staticRow[data-done='true'] {
   opacity: 0.25;
 }
 .staticRow span[data-held='true'] {
-  background: var(--pressed);
+  background:
+    linear-gradient(var(--key-active), var(--key-active)), var(--lane-tint);
 }
-/* Fullscreen is confined to the active chart, including the fallback. */
-.root .expandedStudio,
-.root .staticFullscreen {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100dvh;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  z-index: 100;
-  border: 0;
-  border-radius: 0;
-  background: var(--paper);
-}
-.root .expandedStudio > :not(.fallingBoard),
-.root .staticFullscreen > :not(.staticChart) {
-  display: none;
-}
-.root .expandedStudio .fallingBoard {
+
+/* 7. Right panel: reference cards. */
+.practiceGuide {
   height: 100%;
-  width: 100%;
-}
-.root .staticFullscreen .staticChart {
-  height: 100%;
-  padding: 70px 0 0;
-}
-.staticFullscreen .staticRow {
-  flex: 1;
+  min-width: 0;
   min-height: 0;
-}
-.expandedStudio .columnLabel {
-  top: 80px;
-}
-.fullscreenOverlay,
-.staticFullControls {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  padding: 12px 20px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 12px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-  z-index: 10;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+.guideCard {
+  flex: none;
+  display: grid;
+  gap: 10px;
+  padding: var(--panel-pad);
+  box-shadow: none;
+}
+.guideCard h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+.guideCard p {
+  margin: 0;
+  color: var(--subtle);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.root .guideLink {
+  min-height: 36px;
+  margin-top: 2px;
+  padding: 8px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
+  justify-content: space-between;
   font-size: 13px;
 }
-.fullscreenOverlay > div,
-.staticFullControls > div {
-  display: flex;
-  gap: 8px;
+.root .guideLink:hover {
+  background: transparent;
+  border-color: var(--line);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
-/* Modal workspace panels and result review. */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.statGrid > div {
+  min-width: 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--paper);
+}
+.statGrid dt {
+  color: var(--subtle);
+  font-size: 11px;
+}
+.statGrid dd {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.recentRuns {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.recentRuns li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.recentRuns li:last-child {
+  border-bottom: 0;
+}
+.recentRuns span {
+  color: var(--subtle);
+}
+.fingerMap {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fingerMap li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.fingerMap li:last-child {
+  border-bottom: 0;
+}
+.fingerMap span {
+  color: var(--subtle);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.fingerMap span:last-child {
+  text-align: right;
+}
+.fingerMap kbd {
+  min-width: 0;
+  overflow: hidden;
+  padding: 3px 8px;
+  border: 1px solid var(--key-edge);
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  background: linear-gradient(var(--key-tint), var(--key-tint)), var(--key);
+  box-shadow: inset 3px 0 var(--lane-tint, transparent);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.guideCard .guideTip {
+  padding: 2px 0 2px 10px;
+  border-left: 2px solid var(--accent);
+  font-size: 12px;
+}
+
+/* 8. Drawer & settings. */
 .workspaceDrawer {
   position: fixed;
   inset: 0 0 0 auto;
@@ -923,9 +1315,9 @@
   font-weight: 500;
   margin: 8px 0;
 }
-.drawerHeader button {
-  font-size: 24px;
+.root .drawerHeader button {
   min-width: 44px;
+  font-size: 24px;
 }
 .drawerIntro {
   color: var(--subtle);
@@ -1009,6 +1401,9 @@
   margin: 18px 0;
   font-size: 14px;
 }
+.keySoundToggle {
+  align-items: center;
+}
 .keySetup output {
   display: block;
   font-size: 13px;
@@ -1030,6 +1425,63 @@
   margin-top: 16px;
   color: var(--accent);
   font-size: 13px;
+}
+.colorSettings {
+  display: grid;
+  gap: 12px;
+}
+.colorRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 66px 66px;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  align-items: center;
+}
+.colorRow > strong {
+  font-size: 13px;
+}
+.windowSettings .colorRow label {
+  margin: 0;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.colorRow input[type='color'] {
+  width: 44px;
+  height: 44px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.windowSettings .colorRow .opacitySetting {
+  grid-column: 1/-1;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.settingsDisclosure {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 14px;
+}
+.settingsDisclosure > summary {
+  cursor: pointer;
+  min-height: 48px;
+  padding: 12px 0;
+  font-size: 14px;
+}
+.settingsDisclosure > summary > span {
+  float: right;
+  color: var(--subtle);
+  font-size: 12px;
+}
+.settingsDisclosure[open] {
+  padding-bottom: 16px;
 }
 .recordList {
   display: grid;
@@ -1063,11 +1515,18 @@
   border-radius: 12px;
   color: var(--subtle);
 }
+
+/* 9. Results. */
 .resultScreen {
+  height: 100%;
+  overflow: auto;
   padding: 40px 24px;
   text-align: center;
-  border-radius: 0 0 16px 16px;
   outline-offset: -4px;
+}
+/* Focus lands here programmatically; the region itself is not interactive. */
+.resultScreen:focus {
+  outline: none;
 }
 .resultBadge {
   display: inline-flex;
@@ -1154,16 +1613,30 @@
   gap: 10px;
   margin-top: 24px;
 }
-/* Only state transitions animate; the timing engine owns note positions. */
+
+/* 10. Only state transitions animate; the timing engine owns note positions. */
 @media (prefers-reduced-motion: no-preference) {
-  .root button {
+  .root button,
+  .chartSettings summary {
     transition:
       background-color 140ms,
       border-color 140ms,
       color 140ms;
   }
+  .chartSettings summary b {
+    transition: transform 160ms ease;
+  }
   .fallingPads kbd {
     transition: transform 60ms;
+  }
+  .controlColumn,
+  .practiceGuide {
+    transition:
+      filter 180ms ease,
+      opacity 180ms ease;
+  }
+  .practiceLayout:not(:has([data-dragging])) {
+    transition: grid-template-columns 200ms ease;
   }
   .selectMenu {
     animation: surfaceEnter 120ms ease-out;
@@ -1195,66 +1668,60 @@
     transform: translateX(0);
   }
 }
-@media (max-width: 1200px) {
+
+/* 11. Responsive. Below 950px the reference moves below; below 560px panels stack. */
+@media (max-width: 1150px) {
   .appIdentity {
     display: none;
   }
-  .practiceLayout {
-    grid-template-columns: minmax(0, 1fr) 250px;
-  }
-  .guideCard {
-    padding: 20px;
-  }
-  .controls {
-    gap: 12px;
-  }
-  .playButtons {
-    width: 100%;
-    justify-content: flex-end;
+  .root {
+    --panel-pad: 14px;
   }
 }
 @media (max-width: 950px) {
+  .root .practiceMain {
+    overflow: auto;
+    padding: 12px;
+  }
   .practiceLayout {
-    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 100%;
+    --left-col: clamp(180px, var(--left-width, 220px), 32%);
+    grid-template-columns: var(--left-col) 12px minmax(0, 1fr);
+    grid-template-rows: minmax(400px, 1fr) auto;
+  }
+  .practiceColumn {
+    height: calc(100dvh - 100px);
+    min-height: 400px;
+  }
+  .controlColumn {
+    max-height: calc(100dvh - 100px);
+  }
+  .practiceLayout > .resizeHandle:nth-child(4),
+  .guideTop {
+    display: none;
   }
   .practiceGuide {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-column: 1/-1;
+    height: auto;
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    align-items: start;
+    overflow: visible;
   }
-  .guideCard {
-    padding: 18px;
-  }
-  .practiceMain {
-    padding-top: 32px;
-  }
-  .playButtons {
-    width: auto;
-  }
-  .fingerMap > div {
-    grid-template-columns: 20px 1fr;
-  }
-  .fingerMap span:last-child {
-    grid-column: 2;
-    text-align: center;
+  .root .stageFullscreen .practiceColumn {
+    height: calc(100dvh - 32px);
   }
 }
 @media (max-width: 650px) {
   .appHeader {
-    padding: 14px 16px;
-    gap: 12px;
     flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 16px;
   }
   .appBrand strong {
     font-size: 16px;
-  }
-  .appActions {
-    gap: 6px;
-  }
-  .appActions button {
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-  .appActions .selectControl {
-    min-width: 85px;
   }
   .appActions {
     width: 100%;
@@ -1263,74 +1730,8 @@
   .appActions > .selectControl {
     margin-right: auto;
   }
-  .practiceMain {
-    padding: 28px 12px 20px;
-  }
-  .workspaceHeading {
-    margin-bottom: 24px;
-  }
-  .workspaceHeading h1 {
-    letter-spacing: -1px;
-  }
-  .workspaceHeading p {
-    font-size: 14px;
-  }
-  .sessionCount {
-    display: none;
-  }
-  .loadedPlan {
-    padding: 20px 16px;
-  }
-  .loadedPlan h2 {
-    font-size: 21px;
-  }
-  .practiceToolbar {
-    padding: 12px 16px;
-    gap: 8px;
-  }
-  .formatBar {
-    width: 100%;
-  }
-  .formatBar button {
-    flex: 1;
-  }
-  .challengeBar {
-    flex: 1;
-  }
-  .directionControl {
-    margin-left: 0;
-  }
-  .controls {
-    padding: 16px;
-    gap: 10px;
-  }
-  .tempo {
-    max-width: none;
-  }
-  .playButtons {
-    width: 100%;
-    justify-content: flex-end;
-  }
-  .chartSettingsBody {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 16px;
-  }
-  .chartSettings summary,
-  .fallingReadout,
-  .staticReadout {
-    padding: 12px 16px;
-  }
-  .fallingReadout > div {
-    gap: 8px;
-  }
-  .chartProgress {
-    padding: 12px 16px;
-    gap: 10px;
-  }
   .fallingPads kbd {
     min-width: 0;
-    max-width: 100%;
     padding: 6px 4px;
     font-size: 10px;
   }
@@ -1338,456 +1739,19 @@
     font-size: 10px;
   }
   .fallingNext {
-    padding: 12px;
+    padding: 10px 12px;
     font-size: 10px;
     gap: 8px;
-  }
-  .practiceGuide {
-    grid-template-columns: 1fr;
-  }
-  .fingerMap {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-  .fingerMap > div {
-    grid-template-columns: 20px 1fr;
-  }
-  .workspaceFooter {
-    flex-direction: column;
-    gap: 6px;
-    font-size: 11px;
   }
   .workspaceDrawer {
     padding: 20px 16px;
   }
-  .staticClock {
-    flex-wrap: wrap;
-  }
-  .staticReadout {
-    font-size: 11px;
-  }
-  .fullscreenOverlay,
-  .staticFullControls {
-    padding: 8px;
-    gap: 6px;
-    font-size: 11px;
-  }
-  .fullscreenOverlay button,
-  .staticFullControls button {
-    font-size: 12px;
-    padding: 6px 8px;
-  }
   .keySetupRows > div {
     grid-template-columns: 45px 1fr 1.15fr;
   }
-  .keySetupRows button {
+  .root .keySetupRows button {
     padding: 8px;
     font-size: 12px;
-  }
-}
-
-/* Per-lane colors are scoped to chart cells; geometry stays unchanged. */
-.fallingColumn {
-  background-color: var(--lane-tint, transparent);
-}
-.columnPressed {
-  background-image: linear-gradient(var(--key-tint), var(--key-tint));
-}
-.fallingNote,
-.fallingNote[data-chord='true'] {
-  background: var(--note-color, var(--accent));
-}
-.fallingPads > div {
-  background-color: var(--lane-tint, transparent);
-}
-.fallingPads kbd {
-  background: linear-gradient(var(--key-tint), var(--key-tint)), var(--key);
-}
-.fallingPads .fallingPadPressed kbd {
-  background: linear-gradient(var(--key-active), var(--key-active)), var(--key);
-}
-.staticRow > span,
-.staticKeys > span {
-  background-color: var(--lane-tint, transparent);
-}
-.staticRow i,
-.staticRow[data-current='true'] i {
-  background: var(--note-color, var(--accent));
-}
-.staticRow span[data-held='true'] {
-  background:
-    linear-gradient(var(--key-active), var(--key-active)), var(--lane-tint);
-}
-.colorSettings {
-  display: grid;
-  gap: 12px;
-}
-.colorRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 66px 66px;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  align-items: center;
-}
-.colorRow > strong {
-  font-size: 13px;
-}
-.colorRow label {
-  margin: 0;
-  font-size: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.colorRow input[type='color'] {
-  width: 44px;
-  height: 44px;
-  padding: 3px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface);
-  cursor: pointer;
-}
-.colorRow .opacitySetting {
-  grid-column: 1/-1;
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-.keySoundToggle {
-  align-items: center;
-}
-.keySoundToggle > span:last-child {
-  width: 100%;
-  font-size: 13px;
-  color: var(--subtle);
-}
-
-.settingsDisclosure {
-  margin-top: 20px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 0 14px;
-}
-.settingsDisclosure > summary {
-  cursor: pointer;
-  min-height: 48px;
-  padding: 12px 0;
-  font-size: 14px;
-}
-.settingsDisclosure > summary > span {
-  float: right;
-  color: var(--subtle);
-  font-size: 12px;
-}
-.settingsDisclosure[open] {
-  padding-bottom: 16px;
-}
-
-/* Viewport-bound studio: controls / full-height chart / reference. */
-.root.practiceApp {
-  height: 100dvh;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.appHeader {
-  flex: none;
-  min-height: 72px;
-  padding: 12px 24px;
-  gap: 24px;
-  box-shadow: 0 1px 0 var(--line);
-  z-index: 5;
-}
-.appActions {
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--paper);
-}
-.root .appActions > button {
-  border-color: transparent;
-  background: transparent;
-}
-.root .appActions > button:hover {
-  background: var(--surface);
-  border-color: var(--line);
-}
-.root .appActions .selectControl > button {
-  background: var(--surface);
-}
-.root .practiceMain {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 16px;
-  overflow: hidden;
-  background: var(--paper);
-}
-.practiceLayout {
-  height: 100%;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: 250px minmax(0, 1fr) 260px;
-  gap: 16px;
-}
-.controlColumn {
-  min-height: 0;
-  overflow: auto;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  border-radius: 12px;
-  scrollbar-width: thin;
-}
-.controlColumn .loadedPlan {
-  padding: 20px 16px;
-  flex-direction: column;
-  align-items: stretch;
-}
-.controlColumn .loadedPlan h2 {
-  font-size: 22px;
-}
-.controlColumn .loadedPlan > button {
-  margin-top: 10px;
-}
-.controlColumn .practiceToolbar {
-  padding: 14px;
-  display: grid;
-  gap: 12px;
-}
-.controlColumn .formatBar {
-  width: 100%;
-}
-.controlColumn .formatBar button {
-  flex: 1;
-  padding: 8px;
-}
-.controlColumn .challengeBar {
-  display: grid;
-}
-.controlColumn .directionControl {
-  margin: 0;
-}
-.controlColumn .controls {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-.controlColumn .tempo {
-  flex: auto;
-  width: 100%;
-  max-width: none;
-}
-.controlColumn .tempo label {
-  font-size: 14px;
-}
-.controlColumn .quickSpeed {
-  justify-content: space-between;
-}
-.controlColumn .quickSpeed > span {
-  display: block;
-  font-size: 12px;
-}
-.controlColumn .playButtons {
-  width: 100%;
-  margin: 8px 0 0;
-  display: flex;
-  flex-wrap: nowrap;
-}
-.controlColumn .playButtons button {
-  flex: 1;
-}
-.controlColumn .fallingReadout,
-.controlColumn .staticReadout {
-  padding: 12px;
-  flex-wrap: wrap;
-}
-.controlColumn .fallingReadout > div {
-  flex-wrap: wrap;
-}
-.controlColumn .chartSettingsBody {
-  grid-template-columns: 1fr;
-  padding: 12px;
-}
-.controlColumn .chartProgress {
-  padding: 12px;
-  font-size: 9px;
-  gap: 8px;
-}
-.controlColumn .lifeBar {
-  padding: 12px;
-  flex-wrap: wrap;
-}
-.controlColumn .lifeBar span {
-  margin: 0;
-}
-.stageUtilities {
-  display: grid;
-  gap: 8px;
-  padding: 16px;
-  border-top: 1px solid var(--line);
-}
-.practiceColumn {
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  border-radius: 12px;
-}
-.trainerHost,
-.trainerHost .workbench {
-  height: 100%;
-  min-height: 0;
-}
-.trainerHost .workbench {
-  display: flex;
-  flex-direction: column;
-  border-radius: 12px;
-}
-.trainerHost .fallingBoard {
-  height: auto;
-  flex: 1;
-  min-height: 0;
-}
-.trainerHost .fallingPads {
-  flex: none;
-}
-.trainerHost .fallingNext {
-  flex: none;
-  padding: 12px;
-}
-.trainerHost .staticChart {
-  flex: 1;
-  min-height: 0;
-  padding: 0;
-}
-.staticChart .staticRow {
-  height: auto;
-  flex: 1;
-  min-height: 0;
-}
-.staticChart .staticKeys {
-  flex: none;
-  padding: 14px 0;
-}
-.staticRow[data-future='true'] i {
-  opacity: 0.32;
-}
-.staticRow[data-current='true'] i {
-  opacity: 1;
-  box-shadow: 0 0 0 1px var(--key-edge);
-}
-.practiceGuide {
-  height: 100%;
-  min-height: 0;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  scrollbar-width: thin;
-}
-.practiceGuide .guideCard {
-  padding: 18px;
-}
-.practiceGuide .guideCard h2 {
-  font-size: 18px;
-}
-.practiceGuide .fingerMap {
-  display: block;
-}
-.practiceGuide .fingerMap > div {
-  grid-template-columns: 20px 1fr 1fr;
-}
-.practiceGuide .fingerMap span:last-child {
-  grid-column: auto;
-}
-.resultScreen {
-  height: 100%;
-  min-height: 0 !important;
-  overflow: auto;
-}
-.root .stageFullscreen {
-  position: fixed;
-  inset: 0;
-  height: 100dvh;
-  width: 100vw;
-  padding: 16px;
-  z-index: 100;
-}
-.practiceMain[data-playing='true'] .controlColumn,
-.practiceMain[data-playing='true'] .practiceGuide {
-  filter: blur(2px);
-  opacity: 0.5;
-}
-.practiceMain[data-playing='true']
-  :is(.controlColumn, .practiceGuide):has(:focus-visible) {
-  filter: none;
-  opacity: 1;
-}
-/* Every selected control uses an explicit foreground/background pair. */
-.root button[aria-pressed='true']:not(.startButton),
-.root .formatBar button[aria-pressed='true'],
-.root .selectMenu > button[aria-selected='true'] {
-  background: var(--orange);
-  color: var(--on-orange);
-  border-color: var(--orange);
-}
-.root button[aria-pressed='true']:not(.startButton) > span,
-.root .selectMenu > button[aria-selected='true'] > span {
-  color: inherit;
-}
-.root .selectMenu > button[aria-selected='true']:hover {
-  background: var(--orange);
-  color: var(--on-orange);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .controlColumn,
-  .practiceGuide {
-    transition:
-      filter 180ms ease,
-      opacity 180ms ease;
-  }
-}
-@media (max-width: 1150px) {
-  .practiceLayout {
-    grid-template-columns: 220px minmax(0, 1fr) 220px;
-  }
-  .appIdentity {
-    display: none;
-  }
-}
-@media (max-width: 850px) {
-  .root .practiceMain {
-    overflow: auto;
-    padding: 10px;
-  }
-  .practiceLayout {
-    grid-template-columns: 190px minmax(0, 1fr);
-    grid-template-rows: minmax(400px, 1fr) auto;
-    height: auto;
-    min-height: 100%;
-    gap: 10px;
-  }
-  .practiceColumn {
-    height: calc(100dvh - 110px);
-    min-height: 400px;
-  }
-  .controlColumn {
-    max-height: calc(100dvh - 110px);
-  }
-  .practiceGuide {
-    grid-column: 1/-1;
-    height: auto;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .root .stageFullscreen .practiceColumn {
-    height: calc(100dvh - 30px);
   }
 }
 @media (max-width: 560px) {
@@ -1795,70 +1759,53 @@
     padding: 8px 12px;
     gap: 8px;
   }
-  .appActions {
-    width: auto;
-    flex: 1;
-    flex-wrap: wrap;
-    margin: 0;
-  }
-  .appBrand strong {
-    font-size: 13px;
-  }
   .appBrand > span {
     width: 28px;
     height: 28px;
     font-size: 24px;
   }
-  .appActions .selectControl {
-    min-width: 76px;
+  .appBrand strong {
+    font-size: 13px;
+  }
+  .brandSuffix {
+    display: none;
+  }
+  .appActions {
+    width: auto;
+    margin-left: auto;
+    gap: 2px;
   }
   .appActions > .selectControl {
+    min-width: 76px;
     margin: 0;
   }
   .root .appActions button {
-    font-size: 12px;
     padding: 6px;
+    font-size: 12px;
   }
   .practiceLayout {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(400px, 65dvh) auto;
+    gap: 10px;
+  }
+  .resizeHandle,
+  .root .panelToggle {
+    display: none;
   }
   .controlColumn {
+    height: auto;
     max-height: none;
     overflow: visible;
   }
-  .controlColumn .loadedPlan {
-    padding: 12px;
-    flex-direction: row;
+  .controlScroll {
+    overflow: visible;
+  }
+  .loadedPlan {
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
   }
-  .controlColumn .loadedPlan h2 {
-    font-size: 18px;
-  }
-  .controlColumn .loadedPlan > button {
-    margin: 0;
-  }
-  .controlColumn .practiceToolbar {
-    grid-template-columns: 1fr 1fr;
-  }
-  .controlColumn .formatBar {
-    grid-column: 1/-1;
-  }
-  .controlColumn .controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-  .controlColumn .playButtons {
-    grid-column: 1/-1;
-  }
-  .stageUtilities {
-    grid-template-columns: repeat(3, 1fr);
-    padding: 10px;
-  }
-  .root .stageUtilities button {
-    font-size: 12px;
-    padding: 6px;
-    min-width: 0;
+  .root .loadedPlan > button {
+    width: auto;
   }
   .practiceColumn,
   .root .stageFullscreen .practiceColumn {
@@ -1867,246 +1814,18 @@
   }
   .practiceGuide {
     grid-template-columns: 1fr;
+    margin-top: 0;
   }
   .practiceMain[data-playing='true'] .controlColumn {
     filter: none;
     opacity: 1;
   }
 }
-
-.root .startButton:hover,
-.root .startButton:focus-visible {
-  background: var(--orange);
-  color: var(--on-orange);
-  border-color: var(--orange);
-}
-
-.tightWindow {
-  position: absolute;
-  left: 0;
-  right: 0;
-  background: var(--accent);
-  opacity: 0.3;
-  z-index: 1;
-}
-
-/* Adjustable side panels; saved widths are capped by the available viewport. */
-.practiceLayout {
-  grid-template-columns: clamp(
-      180px,
-      var(--left-width, 250px),
-      min(420px, 27%)
-    ) 10px minmax(0, 1fr) 10px clamp(
-      180px,
-      var(--right-width, 260px),
-      min(420px, 27%)
-    );
-  gap: 0;
-}
-.resizeHandle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: col-resize;
-  touch-action: none;
-  user-select: none;
-  min-height: 0;
-  outline-offset: -2px;
-}
-.resizeHandle::after {
-  width: 3px;
-  height: 48px;
-  border-radius: 3px;
-  background: var(--line);
-}
-.resizeHandle:hover::after,
-.resizeHandle:focus-visible::after {
-  background: var(--accent);
-}
-.resizeHandle:focus-visible {
-  outline: 2px solid var(--focus);
-}
-@media (max-width: 950px) {
-  .practiceLayout {
-    grid-template-columns: clamp(
-        180px,
-        var(--left-width, 220px),
-        32%
-      ) 10px minmax(0, 1fr);
-    grid-template-rows: minmax(400px, 1fr) auto;
-    height: auto;
-    min-height: 100%;
-  }
-  .root .practiceMain {
-    overflow: auto;
-  }
-  .practiceColumn {
-    height: calc(100dvh - 110px);
-    min-height: 400px;
-  }
-  .controlColumn {
-    max-height: calc(100dvh - 110px);
-  }
-  .practiceGuide {
-    grid-column: 1/-1;
-    height: auto;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: 12px;
-  }
-  .practiceLayout > .resizeHandle:nth-child(4) {
-    display: none;
-  }
-}
-@media (max-width: 560px) {
-  .practiceLayout {
+@media (max-width: 400px) {
+  .loadedPlan {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(400px, 65dvh) auto;
-    gap: 10px;
   }
-  .resizeHandle {
-    display: none;
-  }
-  .controlColumn {
-    max-height: none;
-  }
-  .practiceColumn {
-    height: 100%;
-  }
-  .practiceGuide {
-    grid-template-columns: 1fr;
-    margin-top: 0;
-  }
-}
-
-.resizeHandle {
-  margin: 0;
-  border: 0;
-  width: 10px;
-  height: 100%;
-}
-.resizeHandle::after {
-  content: '';
-}
-
-/* Left panel follows setup → tune → play; playback never scrolls away. */
-.controlColumn {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.controlScroll {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  scrollbar-width: thin;
-}
-.controlFooter {
-  flex: none;
-  border-top: 1px solid var(--line);
-  background: var(--surface);
-  padding: 12px;
-}
-.controlColumn .loadedPlan {
-  padding: 16px;
-  gap: 8px;
-}
-.controlColumn .loadedPlan h2 {
-  font-size: 20px;
-  margin: 6px 0;
-}
-.controlColumn .loadedPlan > button {
-  margin-top: 4px;
-  min-height: 40px;
-  font-size: 13px;
-}
-.controlColumn .practiceToolbar {
-  padding: 12px 16px;
-  gap: 12px;
-}
-.controlLabel {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--subtle);
-  font-size: 12px;
-}
-.controlColumn .challengeBar {
-  gap: 6px;
-}
-.controlColumn .challengeBar .controlLabel {
-  margin-bottom: 0;
-}
-.controlColumn .controls {
-  padding: 16px;
-  gap: 14px;
-}
-.controlColumn .tempo {
-  min-height: 0;
-}
-.controlColumn .tempo input {
-  margin: 4px 0 0;
-}
-.controlColumn .quickSpeed {
-  display: grid;
-  grid-template-columns: 1fr 36px 46px 36px;
-  gap: 4px;
-}
-.controlColumn .controlFooter .playButtons {
-  margin: 0;
-  gap: 8px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 68px;
-}
-.controlColumn .controlFooter .playButtons .startButton {
-  min-height: 48px;
-  font-size: 15px;
-}
-.controlFooter .stageUtilities {
-  padding: 10px 0 0;
-  border: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-.controlFooter .stageUtilities > button:first-child {
-  grid-column: 1/-1;
-}
-.root .controlFooter .stageUtilities button {
-  min-height: 36px;
-  font-size: 12px;
-  padding: 6px;
-}
-.controlColumn .staticClock {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 6px 10px;
-}
-.controlColumn .staticClock > span {
-  grid-column: 2;
-}
-@media (max-width: 560px) {
-  .controlColumn {
-    overflow: visible;
-  }
-  .controlScroll {
-    overflow: visible;
-  }
-  .controlColumn .controls {
-    display: flex;
-  }
-  .controlFooter .stageUtilities {
-    grid-template-columns: 1fr 1fr;
-  }
-  .controlColumn .practiceToolbar .directionControl {
-    min-width: 0;
-  }
-}
-
-.controlColumn {
-  height: 100%;
-}
-@media (max-width: 560px) {
-  .controlColumn {
-    height: auto;
+  .root .loadedPlan > button {
+    width: 100%;
   }
 }
