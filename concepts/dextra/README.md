@@ -35,7 +35,7 @@ Physical keyboard required for scored practice. Mobile layouts support browsing 
 
 Browser checks: 1440px desktop and 320px mobile, light/system-dark appearances, theme selection via arrow keys and Enter, settings Escape and focus restoration, survival completion and result view, static playback and fullscreen exit/pause. At 320px, document scroll width equals client width.
 
-Status remains draft pending a full physical-device touch, 200% text-zoom and reduced-motion acceptance pass. Browser interaction testing created one local survival result in the development browser.
+Status: published on 2026-09-16 and listed on the Site Atlas home page. Browser checks covered reduced motion (fixed previews, no transitions), 200% zoom, keyboard focus order, and 320/380/820/1440px widths without horizontal overflow. A physical touch-device pass is still outstanding. Touch browsing and configuration are expected to work, but touch is not a scoring input.
 
 ## Lane personalization
 

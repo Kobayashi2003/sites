@@ -6,7 +6,7 @@ export const meta = {
   summary:
     'A six-lane keyboard trainer with falling and static charts, random challenges, and detailed results.',
   type: 'product prototype',
-  status: 'draft',
+  status: 'published',
   year: 2026,
   tags: ['training', 'rhythm', 'interactive'],
   tone: 'night',
