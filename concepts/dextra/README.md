@@ -16,7 +16,8 @@ An English-language left-hand independence and rhythm practice studio at `/conce
 - `hooks/`: audio cues and fullscreen/focus-view lifecycle.
 - `lib/`: scroll locking.
 - `styles.module.css`: isolated tokens, layout, trainer, panels and responsive/motion rules, in that order.
-- `index.tsx` and `meta.ts`: catalog entry and metadata. No cross-concept dependencies.
+- `assets/`: light and dark gallery preview screenshots (1440×900, captured paused mid-run).
+- `index.tsx` and `meta.ts`: catalog entry, metadata, preview and overview copy. No cross-concept dependencies.
 
 ## Features
 
@@ -74,3 +75,9 @@ Falling runs are scored by DEXTRA rules; Arcaea scoring is not reproduced. Point
 Survival offers 1, 3, 5 or 10 lives. While a run is playing, only the setup scroll area and the guide soften. The left footer stays sharp as a live dock: status, progress or hearts, Pause/Resume, End and Fullscreen. A HUD strip above the chart shows score, combo and accuracy or lives for Falling, and remaining or active time, groups and accuracy for Static. End returns focus to Start, and result actions stay pinned while the breakdown scrolls.
 
 Selected controls use a tonal `--chosen` color pair in both themes instead of a solid fill, text selection follows the theme, and checkboxes render as themed switches. Tests: `node --test concepts/dextra/engine/rhythm.test.mjs concepts/dextra/engine/static.test.mjs` (21 tests).
+
+Scrollbars inside the concept use a slim rounded thumb on a clear track. Colors come from `--scroll-thumb` and `--scroll-thumb-hover`, and an active thumb uses the accent color. Chromium and Safari use `::-webkit-scrollbar`. Other browsers fall back to `scrollbar-width: thin` and `scrollbar-color`, which applies only where the pseudo-elements are unsupported because the standard properties disable them in Chromium.
+
+## Entrance and gallery preview (2026-09-17)
+
+`IntroCurtain` covers the studio on first load in each browser session. Six notes in the configured lane colors land on a hit line, the wordmark settles, and the curtain fades after about 1.25 seconds, once preferences have loaded. It is `aria-hidden`, ignores pointer input while fading, and is skipped for the rest of the session (`dextra-intro-seen` in sessionStorage). Reduced motion shows a static mark for 0.5 seconds. Start and End now stack when the left panel is too narrow for both labels.

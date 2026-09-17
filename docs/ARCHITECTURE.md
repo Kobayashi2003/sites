@@ -41,7 +41,8 @@ Do not abstract unstable concept code merely in anticipation of reuse.
 
 ## Routes and publication states
 
-- `/` displays entries with `status: 'published'` only.
+- `/` displays entries with `status: 'published'` only, as compact cards linking to their overview.
+- `/concepts/<slug>/overview` shows the preview, summary, highlights and details, and links to the concept. It is available for every registered entry.
 - `/concepts/<slug>` renders any registered entry, allowing a `draft` to be reviewed through its direct URL.
 - An unregistered slug enters the shared 404 page.
 - An `archived` entry retains its source and direct URL but does not appear in the gallery.

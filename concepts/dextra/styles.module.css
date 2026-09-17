@@ -31,6 +31,8 @@
   --text-selection: #315fd633;
   --danger: #d23f5a;
   --warn: #b7791f;
+  --scroll-thumb: #c5cfdf;
+  --scroll-thumb-hover: #9aabc6;
   --panel-pad: 16px;
   color-scheme: light;
   background: var(--paper);
@@ -64,6 +66,8 @@
   --text-selection: #9bb8ff4d;
   --danger: #ff8599;
   --warn: #f0c36a;
+  --scroll-thumb: #36445c;
+  --scroll-thumb-hover: #52637f;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -91,6 +95,8 @@
     --text-selection: #9bb8ff4d;
     --danger: #ff8599;
     --warn: #f0c36a;
+    --scroll-thumb: #36445c;
+    --scroll-thumb-hover: #52637f;
     color-scheme: dark;
   }
 }
@@ -258,6 +264,42 @@
   color: inherit;
 }
 
+/*
+ * Scrollbars: a slim rounded thumb on a clear track. Chromium and Safari use
+ * the pseudo-elements; setting scrollbar-color there would disable them, so
+ * the standard properties apply only where the pseudo-elements are absent.
+ */
+.root ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.root ::-webkit-scrollbar-track,
+.root ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.root ::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--scroll-thumb) padding-box;
+}
+.root ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-thumb-hover);
+}
+.root ::-webkit-scrollbar-thumb:active {
+  border-width: 2px;
+  background-color: var(--accent);
+}
+.root ::-webkit-scrollbar-button {
+  display: none;
+}
+@supports not selector(::-webkit-scrollbar) {
+  .root,
+  .root * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+  }
+}
+
 /* Themed select. */
 .selectControl {
   position: relative;
@@ -279,13 +321,14 @@
 .selectControl > button > svg:last-child {
   color: var(--subtle);
 }
+/* Select.tsx switches the open menu to viewport-fixed coordinates. */
 .selectMenu {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
   min-width: 100%;
   width: max-content;
-  max-width: 260px;
+  max-width: min(260px, calc(100vw - 16px));
   max-height: 240px;
   padding: 4px;
   overflow-y: auto;
@@ -299,7 +342,13 @@
   top: auto;
   bottom: calc(100% + 6px);
 }
+.root .selectMenu > button:focus-visible {
+  /* The menu scrolls, so an outer ring would be clipped. */
+  outline-offset: -3px;
+}
 .root .selectMenu > button {
+  /* Block-level, or max-content lays every option on one line. */
+  display: flex;
   width: 100%;
   min-height: 38px;
   border: 0;
@@ -478,8 +527,7 @@
 .controlScroll {
   flex: 1;
   min-height: 0;
-  overflow: auto;
-  scrollbar-width: thin;
+  overflow: hidden auto;
 }
 .loadedPlan {
   padding: var(--panel-pad);
@@ -534,7 +582,7 @@
 .fieldPair {
   display: grid;
   /* Side by side only when both labels fit; otherwise stack. */
-  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(128px, 100%), 1fr));
   gap: 8px;
 }
 .controlColumn .selectControl {
@@ -575,6 +623,7 @@
 }
 .tempo label {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
@@ -590,17 +639,21 @@
 }
 .quickSpeed {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px 8px;
 }
 .quickSpeed > span {
   color: var(--subtle);
   font-size: 12px;
 }
 .stepper {
+  flex: 1 0 auto;
+  max-width: 150px;
+  margin-left: auto;
   display: grid;
-  grid-template-columns: 32px 54px 32px;
+  grid-template-columns: 32px minmax(48px, 1fr) 32px;
   align-items: center;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -642,6 +695,7 @@
 }
 .sessionHead {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
@@ -720,6 +774,7 @@
   min-height: 44px;
   padding: 10px var(--panel-pad);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -738,6 +793,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
   color: var(--subtle);
   font-size: 12px;
   font-weight: 400;
@@ -794,9 +850,16 @@
   background: var(--surface);
 }
 .playButtons {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+}
+/* End drops below Start when the panel is too narrow for both labels. */
+.root .playButtons .startButton {
+  flex: 999 1 7.5em;
+}
+.root .playButtons .endButton {
+  flex: 1 0 auto;
 }
 .root .playButtons .startButton {
   min-width: 0;
@@ -893,6 +956,12 @@
   .controlColumn[data-collapsed='true'] :is(.playButtons, .stageUtilities) {
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
+  }
+  .controlColumn[data-collapsed='true'] .playButtons {
+    flex-direction: column;
+  }
+  .root .controlColumn[data-collapsed='true'] .playButtons button {
+    flex: none;
   }
   /* Icon-only playback; labels stay in the accessibility tree. */
   .root
@@ -1256,7 +1325,6 @@
   flex-direction: column;
   gap: 12px;
   overflow: auto;
-  scrollbar-width: thin;
 }
 .guideCard {
   flex: none;
@@ -1785,6 +1853,198 @@
   padding: 14px 24px 18px;
   border-top: 1px solid var(--line);
   background: var(--surface);
+}
+
+/* Entrance curtain. Static by default; motion only when allowed. */
+.introCurtain {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  color: var(--ink);
+}
+.introCurtain[data-phase='leave'] {
+  pointer-events: none;
+  opacity: 0;
+}
+.introStage {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: min(280px, 80vw);
+}
+.introLanes {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  width: 100%;
+  height: 96px;
+  margin-bottom: 10px;
+}
+.introLanes > span {
+  position: relative;
+  border-left: 1px solid var(--line);
+  background-color: var(--lane-tint, transparent);
+}
+.introLanes > span:last-of-type {
+  border-right: 1px solid var(--line);
+}
+.introLanes i {
+  position: absolute;
+  bottom: 18px;
+  left: 20%;
+  width: 60%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--note-color, var(--accent));
+}
+.introLanes b {
+  position: absolute;
+  right: 0;
+  bottom: 18px;
+  left: 0;
+  height: 1px;
+  background: var(--accent);
+}
+.introMark {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+.introMark span {
+  color: var(--subtle);
+  font-weight: 400;
+}
+.introCaption {
+  color: var(--subtle);
+  font:
+    500 10px/1 var(--font-geist-mono),
+    monospace;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.introProgress {
+  width: 100%;
+  height: 1px;
+  margin-top: 10px;
+  background:
+    linear-gradient(var(--accent), var(--accent)) left / 100% 100% no-repeat,
+    var(--line);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .introCurtain {
+    transition: opacity 420ms ease;
+  }
+  .introCurtain[data-phase='leave'] .introStage {
+    transform: translateY(-8px);
+    transition: transform 420ms ease;
+  }
+  .introLanes i {
+    opacity: 0;
+    animation: introDrop 460ms cubic-bezier(0.55, 0, 0.75, 0.4) forwards;
+  }
+  .introLanes > span {
+    animation: introHit 420ms ease-out both;
+  }
+  .introLanes > span:nth-of-type(2) i {
+    animation-delay: 90ms;
+  }
+  .introLanes > span:nth-of-type(3) i {
+    animation-delay: 180ms;
+  }
+  .introLanes > span:nth-of-type(4) i {
+    animation-delay: 270ms;
+  }
+  .introLanes > span:nth-of-type(5) i {
+    animation-delay: 360ms;
+  }
+  .introLanes > span:nth-of-type(6) i {
+    animation-delay: 450ms;
+  }
+  .introLanes > span:nth-of-type(1) {
+    animation-delay: 460ms;
+  }
+  .introLanes > span:nth-of-type(2) {
+    animation-delay: 550ms;
+  }
+  .introLanes > span:nth-of-type(3) {
+    animation-delay: 640ms;
+  }
+  .introLanes > span:nth-of-type(4) {
+    animation-delay: 730ms;
+  }
+  .introLanes > span:nth-of-type(5) {
+    animation-delay: 820ms;
+  }
+  .introLanes > span:nth-of-type(6) {
+    animation-delay: 910ms;
+  }
+  .introLanes b {
+    animation: introLine 500ms ease-out both;
+  }
+  .introMark,
+  .introCaption {
+    animation: introMark 700ms 250ms ease-out both;
+  }
+  .introProgress {
+    animation: introProgress 1150ms ease-in-out both;
+  }
+}
+@keyframes introDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-70px);
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes introHit {
+  0% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+  30% {
+    box-shadow: inset 0 -40px 30px -24px var(--key-active, var(--accent));
+  }
+  100% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+}
+@keyframes introLine {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes introMark {
+  from {
+    opacity: 0;
+    letter-spacing: 0.5em;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes introProgress {
+  from {
+    background-size:
+      0% 100%,
+      auto;
+  }
+  to {
+    background-size:
+      100% 100%,
+      auto;
+  }
 }
 
 /* 10. Only state transitions animate; the timing engine owns note positions. */

@@ -29,6 +29,7 @@ import LibraryPanel from '../../features/library/LibraryPanel';
 import SettingsPanel from '../../features/settings/SettingsPanel';
 import ResultDetails from '../../features/results/ResultDetails';
 import PracticeGuide from './PracticeGuide';
+import IntroCurtain from './IntroCurtain';
 import { focusPanelToggle } from './focusPanelToggle';
 
 type Drawer = 'library' | 'settings' | 'history' | null;
@@ -310,6 +311,7 @@ function Workspace() {
       data-ready={loaded}
       data-theme={theme}
     >
+      <IntroCurtain ready={loaded} />
       <header className={s.appHeader}>
         <Link href="/concepts/dextra" className={s.appBrand}>
           <span aria-hidden="true">≋</span>

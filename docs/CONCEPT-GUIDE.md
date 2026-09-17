@@ -45,13 +45,17 @@ export const meta = {
   year: 2026,
   tags: ['editorial', 'typography'],
   tone: 'night',
+  preview: { light: previewLight, dark: previewDark, alt: 'What the screenshot shows.' },
+  overview: { lede: '…', highlights: ['…'], details: [{ label: 'Input', value: '…' }] },
 } satisfies ConceptMeta;
 ```
 
 - `summary` describes the work itself; it is not a marketing slogan.
 - `type` and `status` must use the controlled values in `concepts/types.ts`.
 - Use two to four stable, conceptual tags rather than implementation details.
-- `tone` controls the gallery preview card only and must not leak into the concept page.
+- `tone` colors the fallback card block when no `preview` exists and must not leak into the concept page.
+- `preview` imports screenshots from `concepts/<slug>/assets/` (1440×900 JPEG works well). `dark` is optional and appears when the gallery uses its dark theme. `alt` describes the captured state.
+- `overview` supplies the About, Highlights and Details sections of `/concepts/<slug>/overview`. Without it, the overview shows only the header and preview.
 
 ## 5. Style isolation
 

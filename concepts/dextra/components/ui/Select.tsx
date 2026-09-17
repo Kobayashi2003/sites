@@ -1,6 +1,7 @@
 'use client';
 /* eslint-disable jsx-a11y/prefer-tag-over-role -- Custom select keeps explicit ARIA roles while allowing themed options. */
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import Icon from './Icon';
 import type { IconName } from './Icon';
 import s from '../../styles.module.css';
@@ -21,29 +22,61 @@ export default function Select({
   icon?: IconName;
 }) {
   const [open, setOpen] = useState(false),
-    [above, setAbove] = useState(false);
+    [above, setAbove] = useState(false),
+    [place, setPlace] = useState<CSSProperties>({});
   const root = useRef<HTMLDivElement>(null),
-    trigger = useRef<HTMLButtonElement>(null);
+    trigger = useRef<HTMLButtonElement>(null),
+    menu = useRef<HTMLDivElement>(null);
   const id = useId();
   useEffect(() => {
     if (!open) return;
     const outside = (e: PointerEvent) => {
       if (!root.current?.contains(e.target as Node)) setOpen(false);
     };
+    // The menu is viewport-fixed, so any scroll or resize would detach it.
+    const dismiss = (e: Event) => {
+      if (!menu.current?.contains(e.target as Node)) setOpen(false);
+    };
     document.addEventListener('pointerdown', outside);
-    return () => document.removeEventListener('pointerdown', outside);
+    window.addEventListener('scroll', dismiss, true);
+    window.addEventListener('resize', dismiss);
+    return () => {
+      document.removeEventListener('pointerdown', outside);
+      window.removeEventListener('scroll', dismiss, true);
+      window.removeEventListener('resize', dismiss);
+    };
   }, [open]);
+  // Fixed positioning escapes the scrolling side panels that used to clip
+  // the menu; the measured width keeps it inside the viewport.
+  useLayoutEffect(() => {
+    if (!open || !trigger.current || !menu.current) return;
+    const box = trigger.current.getBoundingClientRect();
+    const width = Math.max(box.width, menu.current.offsetWidth);
+    const gutter = 8;
+    setPlace({
+      position: 'fixed',
+      minWidth: box.width,
+      left: Math.max(
+        gutter,
+        Math.min(box.left, window.innerWidth - width - gutter),
+      ),
+      ...(above
+        ? { bottom: window.innerHeight - box.top + 6, top: 'auto' }
+        : { top: box.bottom + 6 }),
+    });
+  }, [open, above]);
   function show() {
     const box = trigger.current?.getBoundingClientRect();
     setAbove(
       !!box &&
         box.bottom + Math.min(options.length * 40 + 12, 220) > innerHeight,
     );
+    setPlace({ visibility: 'hidden' });
     setOpen(true);
     requestAnimationFrame(() =>
       root.current
         ?.querySelector<HTMLButtonElement>('[aria-selected="true"]')
-        ?.focus(),
+        ?.focus({ preventScroll: true }),
     );
   }
   function choose(next: string) {
@@ -93,6 +126,8 @@ export default function Select({
       {open && (
         <div
           id={id}
+          ref={menu}
+          style={place}
           role="listbox"
           tabIndex={-1}
           aria-label={label}
@@ -128,7 +163,7 @@ export default function Select({
               else return;
             } else return;
             e.preventDefault();
-            buttons[next]?.focus();
+            buttons[next]?.focus({ preventScroll: true });
           }}
         >
           {options.map((o) => (
