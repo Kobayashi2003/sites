@@ -7,12 +7,17 @@ import { PracticeAppearance } from '../../features/settings/PracticeAppearance';
 import useFullscreen from '../../hooks/useFullscreen';
 import { StageContext } from './StageContext';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Icon from '../ui/Icon';
 import { lockScroll } from '../../lib/lockScroll';
 import Select from '../ui/Select';
 import StaticTrainer from '../../features/static/StaticTrainer';
 import FallingTrainer from '../../features/falling/FallingTrainer';
+import type { SongSession } from '../../features/falling/FallingTrainer';
+import { DIFFICULTIES, generateChart } from '../../engine/audio';
+import type { Difficulty } from '../../engine/audio';
+import { useSongLibrary } from '../../hooks/useSongLibrary';
+import type { LoadedSong } from '../../hooks/useSongLibrary';
 import { programs } from '../../engine/rhythm';
 import type { ProgramId } from '../../engine/rhythm';
 import {
@@ -72,6 +77,14 @@ function Workspace() {
   const [program, setProgram] = useState<ProgramId>('mixed');
   const [revision, setRevision] = useState(0);
   const [status, setStatus] = useState<Status>('idle');
+  const library = useSongLibrary();
+  const [song, setSong] = useState<LoadedSong | null>(null);
+  const [loadingSongId, setLoadingSongId] = useState<string | null>(null);
+  const [songNotice, setSongNotice] = useState('');
+  const [difficulty, setDifficulty] = useState<Difficulty>('normal');
+  const [songVolume, setSongVolume] = useState(0.8);
+  const [audioOffset, setAudioOffset] = useState(0);
+  const restoreSong = useRef<string | null>(null);
   const {
     panel: stagePanel,
     trigger: stageTrigger,
@@ -97,6 +110,69 @@ function Workspace() {
   const selected = programs.find(
     (p) => p.id === (challenge === 'endless' ? 'random' : program),
   )!;
+  const difficultyLabel = DIFFICULTIES.find((d) => d.id === difficulty)!.label;
+  const songSession = useMemo<SongSession | null>(
+    () =>
+      song && {
+        id: song.id,
+        name: song.name,
+        duration: song.duration,
+        bpm: song.bpm,
+        difficulty,
+        buffer: song.buffer,
+        notes: generateChart(song, {
+          bpm: song.bpm,
+          offset: song.offset,
+          difficulty,
+          mapping,
+        }),
+      },
+    [song, difficulty, mapping],
+  );
+  const songAudio = useMemo(
+    () => ({
+      volume: songVolume,
+      offset: audioOffset,
+      setVolume: setSongVolume,
+      setOffset: setAudioOffset,
+    }),
+    [songVolume, audioOffset],
+  );
+  /** The trainer is keyed by difficulty, so any change starts from idle. */
+  const changeDifficulty = useCallback((next: Difficulty) => {
+    setDifficulty(next);
+    setResult(null);
+    setStatus('idle');
+    setRevision((n) => n + 1);
+  }, []);
+  /** Loads an imported song; resolves false if it is missing or unreadable. */
+  const loadSong = useCallback(
+    async (id: string) => {
+      setLoadingSongId(id);
+      setSongNotice('');
+      try {
+        const next = await library.load(id);
+        if (!next) {
+          setSongNotice('That song is no longer in this browser.');
+          return false;
+        }
+        setSong(next);
+        setFormat('falling');
+        setChallenge('standard');
+        setResult(null);
+        setRevision((n) => n + 1);
+        setStatus('idle');
+        setDrawer(null);
+        return true;
+      } catch {
+        setSongNotice('The song could not be decoded in this browser.');
+        return false;
+      } finally {
+        setLoadingSongId(null);
+      }
+    },
+    [library],
+  );
   const openDrawer = useCallback((next: Exclude<Drawer, null>) => {
     setStatus((value) => (value === 'running' ? 'paused' : value));
     setCapture(null);
@@ -136,8 +212,20 @@ function Workspace() {
       void document.exitFullscreen().then(commit, commit);
     else commit();
   }, []);
-  function again() {
+  async function again() {
     if (!result) return;
+    if (result.songId) {
+      if (result.difficulty) setDifficulty(result.difficulty);
+      if (result.direction) setDirection(result.direction);
+      if (result.windows) setWindows(result.windows);
+      if (song?.id !== result.songId && !(await loadSong(result.songId)))
+        return;
+      setResult(null);
+      setRevision((n) => n + 1);
+      setStatus('running');
+      return;
+    }
+    setSong(null);
     const match = programs.find((p) => p.name === result.mode);
     setProgram(match?.id ?? 'mixed');
     setFormat(result.format ?? 'falling');
@@ -210,6 +298,21 @@ function Workspace() {
             );
           if (programs.some((p) => p.id === saved.program))
             setProgram(saved.program);
+          if (['easy', 'normal', 'hard'].includes(saved.difficulty))
+            setDifficulty(saved.difficulty);
+          if (
+            Number.isFinite(saved.songVolume) &&
+            saved.songVolume >= 0 &&
+            saved.songVolume <= 1
+          )
+            setSongVolume(saved.songVolume);
+          if (
+            Number.isFinite(saved.audioOffset) &&
+            Math.abs(saved.audioOffset) <= 200
+          )
+            setAudioOffset(saved.audioOffset);
+          if (typeof saved.songId === 'string')
+            restoreSong.current = saved.songId;
           if (Array.isArray(saved.history)) {
             const rows = saved.history.filter(validResult);
             setHistory(rows);
@@ -241,6 +344,10 @@ function Workspace() {
           challenge,
           timeLimit,
           lives,
+          songId: song?.id ?? null,
+          difficulty,
+          songVolume,
+          audioOffset,
         }),
       );
       localStorage.setItem('dextra-theme', theme);
@@ -260,7 +367,18 @@ function Workspace() {
     challenge,
     timeLimit,
     lives,
+    song,
+    difficulty,
+    songVolume,
+    audioOffset,
   ]);
+  // Reopen the last imported song once preferences have loaded.
+  useEffect(() => {
+    const id = restoreSong.current;
+    if (!loaded || !id) return;
+    restoreSong.current = null;
+    queueMicrotask(() => void loadSong(id));
+  }, [loaded, loadSong]);
   useEffect(() => {
     if (!loaded) return;
     if (!drawer) {
@@ -298,6 +416,7 @@ function Workspace() {
     return () => window.removeEventListener('keydown', down);
   }, [capture, keys]);
   function loadProgram(id: ProgramId) {
+    setSong(null);
     setResult(null);
     setChallenge('standard');
     setProgram(id);
@@ -388,7 +507,9 @@ function Workspace() {
                 >
                   <div>
                     <div className={s.panelTop}>
-                      <span className={s.eyebrow}>CURRENT EXERCISE</span>
+                      <span className={s.eyebrow}>
+                        {song ? 'CURRENT SONG' : 'CURRENT EXERCISE'}
+                      </span>
                       <button
                         className={s.panelToggle}
                         aria-label="Collapse controls panel"
@@ -403,23 +524,43 @@ function Workspace() {
                         <Icon name="collapseLeft" />
                       </button>
                     </div>
-                    <h2>{selected.name}</h2>
+                    <h2>{songSession ? songSession.name : selected.name}</h2>
                     <p>
-                      {format === 'static' ? 'Static' : 'Falling'} ·{' '}
-                      {challenge === 'endless'
-                        ? format === 'static'
-                          ? `${timeLimit}s timed`
-                          : `${lives} ${lives === 1 ? 'life' : 'lives'}`
-                        : '32 groups'}
+                      {songSession
+                        ? `${difficultyLabel} · ${Math.round(songSession.bpm)} BPM · ${songSession.notes.length} notes`
+                        : `${format === 'static' ? 'Static' : 'Falling'} · ${
+                            challenge === 'endless'
+                              ? format === 'static'
+                                ? `${timeLimit}s timed`
+                                : `${lives} ${lives === 1 ? 'life' : 'lives'}`
+                              : '32 groups'
+                          }`}
                     </p>
+                    {songNotice && (
+                      <output className={s.motionNote}>{songNotice}</output>
+                    )}
                   </div>
                   <button
                     onClick={() => openDrawer('library')}
                     aria-haspopup="dialog"
                   >
                     <Icon name="random" />
-                    Change exercise
+                    {song ? 'Library' : 'Change exercise'}
                   </button>
+                  {song && (
+                    <button
+                      className={s.songExit}
+                      disabled={busy}
+                      onClick={() => {
+                        setSong(null);
+                        setResult(null);
+                        setRevision((n) => n + 1);
+                        setStatus('idle');
+                      }}
+                    >
+                      <span aria-hidden="true">←</span> Back to {selected.name}
+                    </button>
+                  )}
                 </section>
                 <section
                   className={s.panelSection}
@@ -432,7 +573,12 @@ function Workspace() {
                     {(['falling', 'static'] as const).map((value) => (
                       <button
                         key={value}
-                        disabled={busy}
+                        disabled={busy || (!!song && value === 'static')}
+                        title={
+                          song && value === 'static'
+                            ? 'Songs play as falling charts'
+                            : undefined
+                        }
                         aria-pressed={format === value}
                         onClick={() => {
                           setFormat(value);
@@ -445,70 +591,89 @@ function Workspace() {
                       </button>
                     ))}
                   </div>
-                  <div
-                    className={
-                      challenge === 'endless' ? s.fieldPair : s.fieldSingle
-                    }
-                  >
+                  {song ? (
                     <div className={s.field}>
                       <span className={s.fieldLabel} aria-hidden="true">
-                        Challenge
+                        Difficulty
                       </span>
                       <Select
-                        label="Challenge"
-                        icon={
-                          challenge === 'standard'
-                            ? 'play'
-                            : format === 'static'
-                              ? 'clock'
-                              : 'heart'
-                        }
-                        value={challenge}
+                        label="Difficulty"
+                        icon="play"
+                        value={difficulty}
                         disabled={busy}
-                        options={[
-                          { value: 'standard', label: 'Standard' },
-                          {
-                            value: 'endless',
-                            label: format === 'static' ? 'Timed' : 'Survival',
-                          },
-                        ]}
-                        onChange={(v) => {
-                          setChallenge(v as typeof challenge);
-                          setStatus('idle');
-                          setResult(null);
-                          setRevision((n) => n + 1);
-                        }}
+                        options={DIFFICULTIES.map((d) => ({
+                          value: d.id,
+                          label: d.label,
+                        }))}
+                        onChange={(v) => changeDifficulty(v as Difficulty)}
                       />
                     </div>
-                    {challenge === 'endless' && (
+                  ) : (
+                    <div
+                      className={
+                        challenge === 'endless' ? s.fieldPair : s.fieldSingle
+                      }
+                    >
                       <div className={s.field}>
                         <span className={s.fieldLabel} aria-hidden="true">
-                          {format === 'static' ? 'Time limit' : 'Lives'}
+                          Challenge
                         </span>
                         <Select
-                          label={format === 'static' ? 'Time limit' : 'Lives'}
-                          value={String(
-                            format === 'static' ? timeLimit : lives,
-                          )}
+                          label="Challenge"
+                          icon={
+                            challenge === 'standard'
+                              ? 'play'
+                              : format === 'static'
+                                ? 'clock'
+                                : 'heart'
+                          }
+                          value={challenge}
                           disabled={busy}
-                          options={(format === 'static'
-                            ? timeOptions
-                            : lifeOptions
-                          ).map((n) => ({
-                            value: String(n),
-                            label:
-                              format === 'static'
-                                ? `${n}s`
-                                : `${n} ${n === 1 ? 'life' : 'lives'}`,
-                          }))}
+                          options={[
+                            { value: 'standard', label: 'Standard' },
+                            {
+                              value: 'endless',
+                              label: format === 'static' ? 'Timed' : 'Survival',
+                            },
+                          ]}
                           onChange={(v) => {
-                            if (format === 'static') setTimeLimit(Number(v));
-                            else setLives(Number(v));
+                            setChallenge(v as typeof challenge);
+                            setStatus('idle');
+                            setResult(null);
+                            setRevision((n) => n + 1);
                           }}
                         />
                       </div>
-                    )}
-                  </div>
+                      {challenge === 'endless' && (
+                        <div className={s.field}>
+                          <span className={s.fieldLabel} aria-hidden="true">
+                            {format === 'static' ? 'Time limit' : 'Lives'}
+                          </span>
+                          <Select
+                            label={format === 'static' ? 'Time limit' : 'Lives'}
+                            value={String(
+                              format === 'static' ? timeLimit : lives,
+                            )}
+                            disabled={busy}
+                            options={(format === 'static'
+                              ? timeOptions
+                              : lifeOptions
+                            ).map((n) => ({
+                              value: String(n),
+                              label:
+                                format === 'static'
+                                  ? `${n}s`
+                                  : `${n} ${n === 1 ? 'life' : 'lives'}`,
+                            }))}
+                            onChange={(v) => {
+                              if (format === 'static') setTimeLimit(Number(v));
+                              else setLives(Number(v));
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className={s.field}>
                     <span className={s.fieldLabel} aria-hidden="true">
                       Scroll direction
@@ -585,7 +750,9 @@ function Workspace() {
                   <FallingTrainer
                     initialBpm={initialBpm}
                     windows={windows}
-                    key={`${program}-${revision}`}
+                    key={`${song?.id ?? program}-${difficulty}-${revision}`}
+                    song={songSession}
+                    songAudio={songAudio}
                     direction={direction}
                     challenge={challenge}
                     limit={lives}
@@ -635,7 +802,7 @@ function Workspace() {
                     <button
                       className={s.startButton}
                       disabled={busy}
-                      onClick={again}
+                      onClick={() => void again()}
                     >
                       <Icon name="retry" />
                       Again
@@ -671,10 +838,14 @@ function Workspace() {
             <PracticeGuide
               keys={keys}
               mapping={mapping}
-              description={selected.description}
+              description={
+                songSession
+                  ? `An imported song on ${difficultyLabel}: ${songSession.notes.length} notes on a ${Math.round(songSession.bpm)} BPM grid, generated from its strongest onsets. Low hits favour the outer keys.`
+                  : selected.description
+              }
               format={format}
               challenge={challenge}
-              mode={selected.name}
+              mode={songSession ? songSession.name : selected.name}
               history={history}
               collapsed={collapsed.right}
               onCollapse={(open) => togglePanel('right', open)}
@@ -755,6 +926,36 @@ function Workspace() {
                 challenge={challenge}
                 program={program}
                 loadProgram={loadProgram}
+                songs={library.songs}
+                songsAvailable={library.available}
+                job={library.job}
+                loadedSongId={song?.id ?? null}
+                loadingSongId={loadingSongId}
+                difficulty={difficulty}
+                onDifficulty={changeDifficulty}
+                onImport={(file) =>
+                  void library.importFile(file).then((id) => {
+                    if (id) void loadSong(id);
+                  })
+                }
+                onDismissJob={library.dismissJob}
+                onLoadSong={(id) => void loadSong(id)}
+                onRemoveSong={(id) => {
+                  if (song?.id === id) {
+                    setSong(null);
+                    setRevision((n) => n + 1);
+                    setStatus('idle');
+                  }
+                  void library.remove(id);
+                }}
+                onRetuneSong={(id, bpm) =>
+                  void library.retune(id, bpm).then((grid) => {
+                    if (grid)
+                      setSong((current) =>
+                        current?.id === id ? { ...current, ...grid } : current,
+                      );
+                  })
+                }
               />
             )}
             {drawer === 'settings' && (
@@ -818,7 +1019,9 @@ function Workspace() {
                             ·{' '}
                             {r.format === 'static'
                               ? `Static · ${r.errorRate ?? 0}% errors`
-                              : `${r.bpm} BPM · Falling`}
+                              : r.songId
+                                ? `Song · ${DIFFICULTIES.find((d) => d.id === r.difficulty)?.label ?? 'Normal'} · ${r.bpm} BPM`
+                                : `${r.bpm} BPM · Falling`}
                           </small>
                         </span>
                         <b>

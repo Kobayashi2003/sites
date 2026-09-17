@@ -40,6 +40,9 @@ export type Result = {
   score?: number;
   maxScore?: number;
   rank?: string;
+  /** Imported-song runs; `mode` holds the song name. */
+  songId?: string;
+  difficulty?: 'easy' | 'normal' | 'hard';
   judgements?: {
     perfect: number;
     good: number;

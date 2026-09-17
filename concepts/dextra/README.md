@@ -13,8 +13,8 @@ An English-language left-hand independence and rhythm practice studio at `/conce
 - `features/results/`: reusable session result breakdown.
 - `engine/`: pure chart generation, scoring and static state transitions, with Node tests.
 - `model/`: shared domain types and keyboard defaults; no React hooks.
-- `hooks/`: audio cues and fullscreen/focus-view lifecycle.
-- `lib/`: scroll locking.
+- `hooks/`: audio cues, fullscreen/focus-view lifecycle, the song library and the song player clock.
+- `lib/`: scroll locking, IndexedDB song storage and audio decoding.
 - `styles.module.css`: isolated tokens, layout, trainer, panels and responsive/motion rules, in that order.
 - `assets/`: light and dark gallery preview screenshots (1440×900, captured paused mid-run).
 - `index.tsx` and `meta.ts`: catalog entry, metadata, preview and overview copy. No cross-concept dependencies.
@@ -31,7 +31,7 @@ Physical keyboard required for scored practice. Mobile layouts support browsing 
 
 - `npm run lint`
 - `npx tsc --noEmit`
-- `node --test concepts/dextra/engine/rhythm.test.mjs concepts/dextra/engine/static.test.mjs` (21 scoring/generation tests)
+- `node --test concepts/dextra/engine/*.test.mjs` (24 tests: scoring, generation, static play, and song analysis on a synthetic click track)
 - `npm run build`
 
 Browser checks: 1440px desktop and 320px mobile, light/system-dark appearances, theme selection via arrow keys and Enter, settings Escape and focus restoration, survival completion and result view, static playback and fullscreen exit/pause. At 320px, document scroll width equals client width.
@@ -87,3 +87,28 @@ Scrollbars inside the concept use a slim rounded thumb on a clear track. Colors 
 Judgements have their own color tokens, used by the chart callout, in-lane feedback and result breakdown: Pure+ (`--grade-plus`, cyan), Pure (`--grade-pure`, blue), Far (`--grade-far`, amber), Miss (`--grade-miss`, red) and Extra (`--grade-extra`, magenta). Any element with `data-grade` exposes `--grade`. Pure+ uses the engine's `PURE_PLUS_WINDOW`, capped by the Pure window.
 
 Keyboard focus is a 2px `--focus` ring with a 2px offset. Controls that sit edge to edge or inside clipping containers (stepper, Display summary, rail toggle, history rows) draw the ring inset. Enabled buttons press down 1px. Secondary actions take the tonal selection pair on hover, and End warns in the danger color. Select triggers highlight their border and flip the chevron while open, and switches and range inputs show pointer affordances.
+
+## Imported songs (2026-09-17)
+
+Library → My songs imports an audio file (drag and drop or file picker; MP3, OGG, WAV or M4A up to 40 MB, 10 seconds to 15 minutes). Everything stays in the browser: the file and its analysis are stored in IndexedDB (`dextra-songs`), and nothing is uploaded.
+
+Analysis (`engine/audio.ts`, pure and tested in Node):
+
+1. The browser decodes the file and resamples it to 22.05 kHz mono with `OfflineAudioContext`.
+2. Log-spectral flux is split into low (<200 Hz), mid and high bands (1024-sample Hann frames, 20 ms hop). Event times are placed three quarters into each frame to offset the look-ahead of log flux.
+3. Tempo comes from the autocorrelated onset envelope with a prior centred on 120 BPM. It is refined within ±2% jointly with the beat phase.
+4. Onsets are local peaks above an adaptive threshold. A weaker echo within 120 ms of a stronger peak is dropped. Strength becomes the onset's rank within the song, so thresholds do not depend on loudness.
+
+Charts (`generateChart`) snap onsets to the grid: Easy uses beats, Normal half beats and Hard quarter beats. Onsets further than 35% of a step (and at most 120 ms) from the grid are ignored. Each level applies a minimum gap, a rank threshold and a chord threshold.
+
+- Lanes follow the band: lows go to Space/Shift, mids to A/S/D and highs to D/F/S.
+- Recent lanes are penalised, and a quick succession avoids the finger just used.
+- Chords never share a finger. Output is deterministic per song and difficulty and regenerates when the finger mapping changes.
+
+Playback (`hooks/useSongPlayer.ts`) uses the AudioContext clock. Engine time is `LEAD_IN + heard position − audio offset`, corrected for `outputLatency` and `baseLatency`. Pause stops the source, and resume schedules a new one from the same position without rewinding the engine. A song run ends 1.2 seconds after its last note. If audio cannot start, the run falls back to the page clock and shows a notice.
+
+In song mode, the left panel shows Difficulty instead of Challenge, song facts, volume and audio offset (±200 ms, persisted with difficulty and the last song in `dextra-v1`). Static is disabled. Library song cards offer ½×, 2× and ±0.5 BPM adjustments, which re-align the phase from the stored envelope, plus Reset, Reload and a two-step Delete. Song results record `songId` and `difficulty`, and Again reloads the song. The last song reopens on the next visit.
+
+Browser check: a synthetic 124 BPM, 40 s WAV imported in about 0.4 s and was detected at 124 BPM. Easy, Normal and Hard produced 73, 137 and 160 notes. A full scripted run scored S at 137/137 with a mean offset of +6 ms. Pause, resume, Again, retune and reset, invalid and undecodable files, restore after reload, and a 390px drawer without overflow were also checked. Limits: songs with tempo changes or free rhythm produce weaker charts, and there is no chart editor or tap calibration yet.
+
+Review fixes: library difficulty buttons are disabled during a run, and every difficulty change returns the trainer to idle. Before, a change while paused rebuilt the trainer with no active run, and Resume froze the stage. `useSongPlayer.play` now resolves `started`, `cancelled` or `failed`. The trainer ignores a start that resolves after its effect was cleaned up, so a quick pause and resume no longer swaps the audio clock for the page clock.

@@ -13,6 +13,7 @@ import {
   comboMultiplier,
   groupPoints,
   scoreRank,
+  createRhythmFromChart,
 } from './rhythm.ts';
 
 const mapping = [0, 0, 1, 2, 3, 4];
@@ -261,4 +262,31 @@ test('a flawless fixed chart reaches its maximum score and rank S', () => {
   assert.equal(scoreRank(0, state.maxScore), 'D');
   assert.equal(createRhythm(60, mapping, 'random', undefined, 10).maxScore, 0);
   assert.equal(scoreRank(1000, 0), undefined);
+});
+
+test('imported charts keep their timing after the lead-in and score like fixed charts', () => {
+  const chart = [
+    { at: 0, lanes: [0] },
+    { at: 450, lanes: [2, 4] },
+    { at: 900, lanes: [5] },
+  ];
+  const state = createRhythmFromChart(chart, 133, mapping);
+  assert.deepEqual(
+    state.notes.map((n) => n.at),
+    [LEAD_IN, LEAD_IN + 450, LEAD_IN + 900],
+  );
+  assert.equal(state.survival, false);
+  assert.equal(state.maxScore, 300 + 600 + 300);
+  pressRhythm(state, 0, LEAD_IN);
+  releaseRhythm(state, 0);
+  pressRhythm(state, 2, LEAD_IN + 450);
+  pressRhythm(state, 4, LEAD_IN + 455);
+  releaseRhythm(state, 2);
+  releaseRhythm(state, 4);
+  pressRhythm(state, 5, LEAD_IN + 900);
+  const summary = rhythmSummary(state);
+  assert.equal(summary.done, true);
+  assert.equal(summary.total, 3);
+  assert.equal(summary.score, state.maxScore);
+  assert.equal(chart[1].lanes.length, 2, 'input chart is not mutated');
 });

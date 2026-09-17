@@ -191,11 +191,37 @@ export function createRhythm(
       offsets: {},
     })),
   };
-  if (!state.survival)
-    state.maxScore = state.notes.reduce(
-      (sum, note, i) => sum + groupPoints('pureplus', note.lanes.length, i + 1),
-      0,
-    );
+  if (!state.survival) state.maxScore = chartMaxScore(state.notes);
+  return state;
+}
+
+/** Score of a flawless run: every group Pure+, combo unbroken. */
+export function chartMaxScore(notes: { lanes: number[] }[]) {
+  return notes.reduce(
+    (sum, note, i) => sum + groupPoints('pureplus', note.lanes.length, i + 1),
+    0,
+  );
+}
+
+/**
+ * A fixed chart from an imported song. Note times are milliseconds from the
+ * start of the audio, which begins playing at the end of the lead-in.
+ */
+export function createRhythmFromChart(
+  chart: { at: number; lanes: number[] }[],
+  bpm: number,
+  mapping: number[],
+  windows = { perfect: PERFECT_WINDOW, good: HIT_WINDOW },
+): RhythmState {
+  const state = createRhythm(bpm, mapping, 'mixed', windows);
+  state.notes = chart.map((note, id) => ({
+    id,
+    at: LEAD_IN + note.at,
+    lanes: [...note.lanes],
+    grade: 'pending',
+    offsets: {},
+  }));
+  state.maxScore = chartMaxScore(state.notes);
   return state;
 }
 

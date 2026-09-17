@@ -23,13 +23,14 @@ export const meta = {
       'Falling charts with Pure+, Pure and Far timing windows, combo-weighted scoring and S–D ranks.',
       'Static practice that measures active time and accuracy without a tempo.',
       'Survival with up to 10 lives and timed random challenges.',
+      'Import your own songs: beats are detected locally and turned into Easy, Normal or Hard charts played in sync with the music.',
       'Resizable, collapsible side panels, lane colors and light or dark themes.',
     ],
     details: [
       { label: 'Input', value: 'Physical keyboard' },
       { label: 'Formats', value: 'Falling · Static' },
       { label: 'Storage', value: 'This browser only' },
-      { label: 'Session', value: '32 groups or open-ended' },
+      { label: 'Session', value: '32 groups, open-ended or a full song' },
     ],
   },
 } satisfies ConceptMeta;

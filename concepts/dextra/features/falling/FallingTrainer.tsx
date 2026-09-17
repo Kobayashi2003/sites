@@ -5,12 +5,13 @@ import {
   laneStyle,
 } from '../settings/PracticeAppearance';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   advanceRhythm,
   comboMultiplier,
   programs,
   createRhythm,
+  createRhythmFromChart,
   HIT_LINE,
   notePosition,
   LEAD_IN,
@@ -21,6 +22,9 @@ import {
   TRAVEL_TIME,
 } from '../../engine/rhythm';
 import type { RhythmState, ProgramId } from '../../engine/rhythm';
+import { DIFFICULTIES } from '../../engine/audio';
+import type { ChartNote, Difficulty } from '../../engine/audio';
+import { useSongPlayer } from '../../hooks/useSongPlayer';
 import { StageControls } from '../../components/workspace/StageContext';
 import Icon from '../../components/ui/Icon';
 import LifeMeter from '../../components/ui/LifeMeter';
@@ -36,6 +40,29 @@ const GRADE_LABEL: Record<GradeKey, string> = {
   miss: 'Miss',
   extra: 'Extra',
 };
+/** An imported song with its generated chart, ready to play. */
+export type SongSession = {
+  id: string;
+  name: string;
+  duration: number;
+  bpm: number;
+  difficulty: Difficulty;
+  notes: ChartNote[];
+  buffer: AudioBuffer;
+};
+export type SongAudio = {
+  volume: number;
+  offset: number;
+  setVolume: (value: number) => void;
+  setOffset: (value: number) => void;
+};
+const clockText = (ms: number) => {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+};
+/** Imported charts end shortly after their last note, not at the outro. */
+const SONG_TAIL = 1200;
+
 const worstOffset = (offsets: Record<number, number>) =>
   Object.values(offsets).reduce(
     (a, b) => (Math.abs(b) > Math.abs(a) ? b : a),
@@ -54,6 +81,8 @@ type Props = {
   status: Status;
   onStatus: (status: Status) => void;
   onComplete: (result: Result) => void;
+  song?: SongSession | null;
+  songAudio: SongAudio;
 };
 export default function FallingTrainer({
   program,
@@ -67,6 +96,8 @@ export default function FallingTrainer({
   status,
   onStatus,
   onComplete,
+  song = null,
+  songAudio,
 }: Props) {
   const {
     preferences: { colors },
@@ -78,15 +109,27 @@ export default function FallingTrainer({
   const [preferencesReady, setPreferencesReady] = useState(false);
   const displaySettings = useRef<HTMLDetailsElement | null>(null);
   const [reduced, setReduced] = useState(false);
-  const [view, setView] = useState(() =>
-    createRhythm(
-      initialBpm,
-      mapping,
-      program,
-      windows,
-      challenge === 'endless' ? limit : 0,
-    ),
+  const build = useCallback(
+    (tempo: number) =>
+      song
+        ? createRhythmFromChart(song.notes, song.bpm, mapping, windows)
+        : createRhythm(
+            tempo,
+            mapping,
+            program,
+            windows,
+            challenge === 'endless' ? limit : 0,
+          ),
+    [song, mapping, program, windows, challenge, limit],
   );
+  const player = useSongPlayer(
+    song?.buffer ?? null,
+    songAudio.volume,
+    songAudio.offset,
+  );
+  const [audioIssue, setAudioIssue] = useState('');
+  const clock = useRef<() => number>(() => 0);
+  const [view, setView] = useState(() => build(initialBpm));
   const engine = useRef<RhythmState | null>(status === 'running' ? view : null);
   const startButton = useRef<HTMLButtonElement>(null);
   const origin = useRef(0);
@@ -161,21 +204,13 @@ export default function FallingTrainer({
     queueMicrotask(() => {
       if (!cancelled) {
         engine.current = null;
-        setView(
-          createRhythm(
-            bpm,
-            mapping,
-            program,
-            windows,
-            challenge === 'endless' ? limit : 0,
-          ),
-        );
+        setView(build(bpm));
       }
     });
     return () => {
       cancelled = true;
     };
-  }, [status, bpm, mapping, program, windows, challenge, limit]);
+  }, [status, bpm, build]);
 
   useEffect(() => {
     const query = matchMedia('(prefers-reduced-motion: reduce)');
@@ -189,21 +224,46 @@ export default function FallingTrainer({
     if (status !== 'running' || !engine.current) return;
     const state = engine.current;
     origin.current = performance.now() - state.elapsed;
+    const time = song
+      ? () => player.now() ?? state.elapsed
+      : () => performance.now() - origin.current;
+    clock.current = time;
+    // A start that resolves after this run was paused must not touch it.
+    let cancelled = false;
+    if (song)
+      void player.play(state.elapsed).then((outcome) => {
+        if (cancelled || outcome === 'cancelled') return;
+        const failed = outcome === 'failed';
+        setAudioIssue(
+          failed
+            ? 'Audio could not start. Notes still run on the page clock.'
+            : '',
+        );
+        if (failed) {
+          origin.current = performance.now() - state.elapsed;
+          clock.current = () => performance.now() - origin.current;
+        }
+      });
+    const lastAt = state.notes.at(-1)?.at ?? 0;
     let frame = 0;
     function render() {
-      advanceRhythm(state, performance.now() - origin.current);
+      advanceRhythm(state, clock.current());
       setView({
         ...state,
         held: new Set(state.held),
         notes: state.notes.map((n) => ({ ...n })),
       });
       const result = rhythmSummary(state);
-      if (result.done) {
+      if (result.done && (!song || state.elapsed >= lastAt + SONG_TAIL)) {
         if (!completed.current) {
           completed.current = true;
           onComplete({
             date: new Date().toISOString(),
-            mode: programs.find((p) => p.id === program)!.name,
+            mode: song
+              ? song.name
+              : programs.find((p) => p.id === program)!.name,
+            songId: song?.id,
+            difficulty: song?.difficulty,
             accuracy: result.accuracy,
             hits: result.hits,
             total: result.total,
@@ -222,7 +282,7 @@ export default function FallingTrainer({
             score: result.score,
             maxScore: result.maxScore || undefined,
             rank: result.rank,
-            bpm,
+            bpm: song ? Math.round(song.bpm) : bpm,
             format: 'falling',
             challenge,
             limit,
@@ -236,13 +296,26 @@ export default function FallingTrainer({
     }
     frame = requestAnimationFrame(render);
     return () => {
+      cancelled = true;
       cancelAnimationFrame(frame);
-      advanceRhythm(state, performance.now() - origin.current);
+      advanceRhythm(state, clock.current());
+      if (song) player.pause();
       state.held.clear();
       for (const note of state.notes)
         if (note.grade === 'pending') note.offsets = {};
     };
-  }, [status, bpm, program, direction, challenge, limit, onStatus, onComplete]);
+  }, [
+    status,
+    bpm,
+    program,
+    direction,
+    challenge,
+    limit,
+    onStatus,
+    onComplete,
+    song,
+    player,
+  ]);
 
   useEffect(() => {
     function down(e: KeyboardEvent) {
@@ -260,7 +333,7 @@ export default function FallingTrainer({
       if (lane < 0) return;
       e.preventDefault();
       if (!e.repeat && engine.current)
-        pressRhythm(engine.current, lane, performance.now() - origin.current);
+        pressRhythm(engine.current, lane, clock.current());
     }
     function up(e: KeyboardEvent) {
       if (engine.current) releaseRhythm(engine.current, keys.indexOf(e.code));
@@ -293,13 +366,7 @@ export default function FallingTrainer({
 
   function start() {
     if (displaySettings.current) displaySettings.current.open = false;
-    const state = createRhythm(
-      bpm,
-      mapping,
-      program,
-      windows,
-      challenge === 'endless' ? limit : 0,
-    );
+    const state = build(bpm);
     engine.current = state;
     completed.current = false;
     setView(state);
@@ -315,24 +382,78 @@ export default function FallingTrainer({
       <StageControls>
         <section className={s.panelSection} aria-labelledby="panel-tempo">
           <h3 className={s.panelHeading} id="panel-tempo">
-            Tempo
+            {song ? 'Song' : 'Tempo'}
           </h3>
-          <div className={s.tempo}>
-            <label htmlFor="falling-tempo">
-              <span>BPM</span>
-              <strong>{bpm}</strong>
-            </label>
-            <input
-              id="falling-tempo"
-              type="range"
-              min="30"
-              max="150"
-              step="5"
-              value={bpm}
-              disabled={busy}
-              onChange={(e) => setBpm(Number(e.target.value))}
-            />
-          </div>
+          {song ? (
+            <>
+              <div className={s.songFacts}>
+                <span>
+                  <strong>{Math.round(song.bpm * 10) / 10}</strong> BPM
+                </span>
+                <span>
+                  <strong>{song.notes.length}</strong> notes
+                </span>
+                <span>
+                  <strong>{clockText(song.duration * 1000)}</strong> length
+                </span>
+              </div>
+              <div className={s.tempo}>
+                <label htmlFor="song-volume">
+                  <span>Volume</span>
+                  <strong>{Math.round(songAudio.volume * 100)}%</strong>
+                </label>
+                <input
+                  id="song-volume"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={songAudio.volume}
+                  onChange={(e) => songAudio.setVolume(Number(e.target.value))}
+                />
+              </div>
+              <div className={s.tempo}>
+                <label htmlFor="song-offset">
+                  <span>Audio offset</span>
+                  <strong>
+                    {songAudio.offset > 0 ? '+' : ''}
+                    {songAudio.offset} ms
+                  </strong>
+                </label>
+                <input
+                  id="song-offset"
+                  type="range"
+                  min="-200"
+                  max="200"
+                  step="5"
+                  value={songAudio.offset}
+                  disabled={busy}
+                  aria-describedby="song-offset-hint"
+                  onChange={(e) => songAudio.setOffset(Number(e.target.value))}
+                />
+                <small id="song-offset-hint" className={s.fieldHint}>
+                  Raise it if notes feel early against the music.
+                </small>
+              </div>
+            </>
+          ) : (
+            <div className={s.tempo}>
+              <label htmlFor="falling-tempo">
+                <span>BPM</span>
+                <strong>{bpm}</strong>
+              </label>
+              <input
+                id="falling-tempo"
+                type="range"
+                min="30"
+                max="150"
+                step="5"
+                value={bpm}
+                disabled={busy}
+                onChange={(e) => setBpm(Number(e.target.value))}
+              />
+            </div>
+          )}
           <div className={s.quickSpeed}>
             <span>Scroll speed</span>
             <div className={s.stepper}>
@@ -365,6 +486,7 @@ export default function FallingTrainer({
               reaches zero.
             </p>
           )}
+          {audioIssue && <output className={s.motionNote}>{audioIssue}</output>}
         </section>
         <details
           ref={displaySettings}
@@ -452,7 +574,7 @@ export default function FallingTrainer({
               <span>
                 {challenge === 'endless'
                   ? `${stats.judged} groups`
-                  : `${stats.judged} / 32`}
+                  : `${stats.judged} / ${stats.total}`}
               </span>
             </div>
             {challenge === 'endless' ? (
@@ -463,12 +585,14 @@ export default function FallingTrainer({
             ) : (
               <div className={s.sessionMeter}>
                 <progress
-                  max={32}
+                  max={stats.total}
                   value={stats.judged}
                   aria-label="Chart progress"
                 />
                 <span>
-                  Phrase {Math.min(4, Math.floor(stats.judged / 8) + 1)} of 4
+                  {song
+                    ? `${clockText(view.elapsed - LEAD_IN)} / ${clockText(song.duration * 1000)} · ${DIFFICULTIES.find((d) => d.id === song.difficulty)?.label}`
+                    : `Phrase ${Math.min(4, Math.floor(stats.judged / 8) + 1)} of 4`}
                 </span>
               </div>
             )}
@@ -692,7 +816,9 @@ export default function FallingTrainer({
             ? `${Math.max(0, (next.at - view.elapsed) / 1000).toFixed(1)}s`
             : status === 'done'
               ? `${stats.hits} / ${stats.total} clean hits`
-              : '3s lead-in · 1 note per beat'}
+              : song
+                ? `♪ ${song.name}`
+                : '3s lead-in · 1 note per beat'}
         </span>
       </div>
     </section>
