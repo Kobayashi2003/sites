@@ -32,6 +32,11 @@
   --danger: #d23f5a;
   --warn: #b7791f;
   --scroll-thumb: #c5cfdf;
+  --grade-plus: #0b8ea4;
+  --grade-pure: #315fd6;
+  --grade-far: #b7791f;
+  --grade-miss: #d23f5a;
+  --grade-extra: #9b3fa0;
   --scroll-thumb-hover: #9aabc6;
   --panel-pad: 16px;
   color-scheme: light;
@@ -67,6 +72,11 @@
   --danger: #ff8599;
   --warn: #f0c36a;
   --scroll-thumb: #36445c;
+  --grade-plus: #67e0f0;
+  --grade-pure: #9bb8ff;
+  --grade-far: #f0c36a;
+  --grade-miss: #ff8599;
+  --grade-extra: #e39be0;
   --scroll-thumb-hover: #52637f;
   color-scheme: dark;
 }
@@ -96,6 +106,11 @@
     --danger: #ff8599;
     --warn: #f0c36a;
     --scroll-thumb: #36445c;
+    --grade-plus: #67e0f0;
+    --grade-pure: #9bb8ff;
+    --grade-far: #f0c36a;
+    --grade-miss: #ff8599;
+    --grade-extra: #e39be0;
     --scroll-thumb-hover: #52637f;
     color-scheme: dark;
   }
@@ -133,8 +148,27 @@
   border-color: var(--line);
 }
 .root :is(button, a, input, select, summary):focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 3px;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+/* Edge-to-edge or clipped controls draw the ring inside themselves. */
+.root
+  :is(
+    .stepper button,
+    .chartSettings summary,
+    .railToggle,
+    .recordList > button
+  ):focus-visible {
+  outline-offset: -3px;
+}
+.root button:not(:disabled):active {
+  transform: translateY(1px);
+}
+.root input[type='range']:not(:disabled) {
+  cursor: pointer;
+}
+.root input[type='checkbox']:hover {
+  border-color: var(--accent);
 }
 .root button > svg {
   flex-shrink: 0;
@@ -244,11 +278,38 @@
   border-color: var(--orange);
   filter: brightness(1.08);
 }
+.root .startButton:hover {
+  box-shadow: 0 6px 16px -8px var(--orange);
+}
 .root .endButton {
   color: var(--subtle);
 }
 .root .endButton:not(:disabled):hover {
-  color: var(--ink);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+}
+/* Outlined secondary actions take the tonal selection pair on hover. */
+.root
+  :is(.loadedPlan > button, .planList button, .historyLink):not(
+    :disabled
+  ):hover {
+  border-color: var(--chosen-edge);
+  background: var(--chosen);
+  color: var(--chosen-ink);
+}
+.planList article:has(button:hover) {
+  border-color: var(--chosen-edge);
+}
+.root .recordList > button:hover {
+  border-color: var(--chosen-edge);
+  background: var(--paper);
+}
+.recordList b > span {
+  display: inline-block;
+}
+.root .recordList > button:hover b > span {
+  transform: translate(2px, -2px);
 }
 /* Every selected control uses an explicit foreground/background pair. */
 .root button[aria-pressed='true']:not(.startButton),
@@ -320,6 +381,20 @@
 }
 .selectControl > button > svg:last-child {
   color: var(--subtle);
+}
+.root .selectControl > button:not(:disabled):hover {
+  border-color: var(--chosen-edge);
+  background: var(--surface);
+}
+.selectControl > button:not(:disabled):hover > svg:last-child {
+  color: var(--ink);
+}
+.root .selectControl > button[aria-expanded='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--chosen);
+}
+.selectControl > button[aria-expanded='true'] > svg:last-child {
+  transform: rotate(180deg);
 }
 /* Select.tsx switches the open menu to viewport-fixed coordinates. */
 .selectMenu {
@@ -1158,6 +1233,21 @@
   height: 2px;
   background: var(--accent);
 }
+.root [data-grade] {
+  --grade: var(--grade-pure);
+}
+.root [data-grade='pureplus'] {
+  --grade: var(--grade-plus);
+}
+.root [data-grade='good'] {
+  --grade: var(--grade-far);
+}
+.root [data-grade='miss'] {
+  --grade: var(--grade-miss);
+}
+.root [data-grade='extra'] {
+  --grade: var(--grade-extra);
+}
 .chartJudgement {
   position: absolute;
   top: 30%;
@@ -1172,15 +1262,13 @@
   text-transform: uppercase;
   letter-spacing: 3px;
   font-size: 24px;
-  color: var(--target-ink);
+  color: var(--grade, var(--target-ink));
+  text-shadow: 0 0 18px
+    color-mix(in srgb, var(--grade, transparent) 40%, transparent);
 }
 .chartJudgement span {
   font-size: 12px;
   color: var(--subtle);
-}
-.chartJudgement[data-grade='miss'] strong,
-.chartJudgement[data-grade='extra'] strong {
-  color: var(--ink);
 }
 .hitFeedback {
   position: absolute;
@@ -1189,7 +1277,18 @@
   right: 0;
   text-align: center;
   font-size: 9px;
-  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--grade);
+}
+.hitFeedback::after {
+  content: '';
+  display: block;
+  width: 50%;
+  height: 2px;
+  margin: 3px auto 0;
+  border-radius: 2px;
+  background: var(--grade);
 }
 .fallingBoard[data-direction='up'] .hitFeedback {
   top: 18%;
@@ -1787,8 +1886,9 @@
 }
 .resultGrades small {
   display: block;
-  color: var(--accent);
+  color: var(--grade);
   font-size: 11px;
+  font-weight: 600;
 }
 .rankBadge {
   display: inline-grid;
@@ -1815,13 +1915,24 @@
   padding: 16px 4px;
 }
 .resultGrades span {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   color: var(--subtle);
   font-size: 12px;
 }
+.resultGrades span::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--grade);
+}
 .resultGrades strong {
+  color: var(--grade);
   font-size: 24px;
-  font-weight: 500;
+  font-weight: 600;
 }
 .resultTiming {
   max-width: 460px;
@@ -2054,7 +2165,16 @@
     transition:
       background-color 140ms,
       border-color 140ms,
-      color 140ms;
+      color 140ms,
+      box-shadow 140ms,
+      transform 80ms;
+  }
+  .planList article,
+  .recordList b > span,
+  .selectControl > button > svg:last-child {
+    transition:
+      border-color 140ms,
+      transform 140ms;
   }
   .chartSettings summary b {
     transition: transform 160ms ease;

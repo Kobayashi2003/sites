@@ -81,3 +81,9 @@ Scrollbars inside the concept use a slim rounded thumb on a clear track. Colors 
 ## Entrance and gallery preview (2026-09-17)
 
 `IntroCurtain` covers the studio on first load in each browser session. Six notes in the configured lane colors land on a hit line, the wordmark settles, and the curtain fades after about 1.25 seconds, once preferences have loaded. It is `aria-hidden`, ignores pointer input while fading, and is skipped for the rest of the session (`dextra-intro-seen` in sessionStorage). Reduced motion shows a static mark for 0.5 seconds. Start and End now stack when the left panel is too narrow for both labels.
+
+## Judgement colors and interaction states (2026-09-17)
+
+Judgements have their own color tokens, used by the chart callout, in-lane feedback and result breakdown: Pure+ (`--grade-plus`, cyan), Pure (`--grade-pure`, blue), Far (`--grade-far`, amber), Miss (`--grade-miss`, red) and Extra (`--grade-extra`, magenta). Any element with `data-grade` exposes `--grade`. Pure+ uses the engine's `PURE_PLUS_WINDOW`, capped by the Pure window.
+
+Keyboard focus is a 2px `--focus` ring with a 2px offset. Controls that sit edge to edge or inside clipping containers (stepper, Display summary, rail toggle, history rows) draw the ring inset. Enabled buttons press down 1px. Secondary actions take the tonal selection pair on hover, and End warns in the danger color. Select triggers highlight their border and flip the chevron while open, and switches and range inputs show pointer affordances.

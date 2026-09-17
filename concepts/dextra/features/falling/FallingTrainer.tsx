@@ -28,6 +28,20 @@ import s from '../../styles.module.css';
 import { fingers, keyLabel } from '../../model/training';
 import type { Status, Result } from '../../model/training';
 
+type GradeKey = 'pureplus' | 'perfect' | 'good' | 'miss' | 'extra';
+const GRADE_LABEL: Record<GradeKey, string> = {
+  pureplus: 'Pure+',
+  perfect: 'Pure',
+  good: 'Far',
+  miss: 'Miss',
+  extra: 'Extra',
+};
+const worstOffset = (offsets: Record<number, number>) =>
+  Object.values(offsets).reduce(
+    (a, b) => (Math.abs(b) > Math.abs(a) ? b : a),
+    0,
+  );
+
 type Props = {
   direction: 'down' | 'up';
   challenge: 'standard' | 'endless';
@@ -84,12 +98,24 @@ export default function FallingTrainer({
   const travelTime = TRAVEL_TIME / displaySpeed;
   const displayTime =
     status === 'idle' ? LEAD_IN - travelTime * 0.25 : view.elapsed;
+  const plusWindow = Math.min(PURE_PLUS_WINDOW, windows.perfect);
+  const gradeKey = (grade: GradeKey, offset?: number): GradeKey =>
+    grade === 'perfect' && Math.abs(offset ?? Infinity) <= plusWindow
+      ? 'pureplus'
+      : grade;
+  const judgement =
+    view.lastJudgement &&
+    gradeKey(view.lastJudgement.grade, view.lastJudgement.offset);
   const latest = view.notes
     .filter((n) => n.judgedAt !== undefined)
     .reduce<(typeof view.notes)[number] | undefined>(
       (last, note) => (!last || note.judgedAt! >= last.judgedAt! ? note : last),
       undefined,
     );
+  const latestKey =
+    latest && latest.grade !== 'pending'
+      ? gradeKey(latest.grade, worstOffset(latest.offsets))
+      : undefined;
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
@@ -522,23 +548,13 @@ export default function FallingTrainer({
         <div
           className={s.chartJudgement}
           aria-live="polite"
-          data-grade={view.lastJudgement?.grade}
+          data-grade={judgement}
         >
           {status === 'running' &&
             view.lastJudgement &&
             view.elapsed - view.lastJudgement.at < 650 && (
               <>
-                <strong>
-                  {view.lastJudgement.grade === 'perfect' &&
-                  Math.abs(view.lastJudgement.offset ?? Infinity) <=
-                    Math.min(PURE_PLUS_WINDOW, windows.perfect)
-                    ? 'Pure+'
-                    : view.lastJudgement.grade === 'perfect'
-                      ? 'Pure'
-                      : view.lastJudgement.grade === 'good'
-                        ? 'Far'
-                        : view.lastJudgement.grade}
-                </strong>
+                <strong>{GRADE_LABEL[judgement!]}</strong>
                 <span>
                   {view.lastJudgement.offset === undefined
                     ? 'Find the next beat'
@@ -559,8 +575,8 @@ export default function FallingTrainer({
             <i
               className={s.tightWindow}
               style={{
-                top: `${((windows.good - Math.min(25, windows.perfect)) / (2 * windows.good)) * 100}%`,
-                height: `${(Math.min(25, windows.perfect) / windows.good) * 100}%`,
+                top: `${((windows.good - plusWindow) / (2 * windows.good)) * 100}%`,
+                height: `${(plusWindow / windows.good) * 100}%`,
               }}
             />
             <span
@@ -615,10 +631,10 @@ export default function FallingTrainer({
               view.elapsed - latest.judgedAt! < 280 && (
                 <span
                   className={s.hitFeedback}
-                  data-grade={latest.grade}
+                  data-grade={latestKey}
                   aria-hidden="true"
                 >
-                  {latest.grade === 'perfect' ? 'PURE' : 'FAR'}
+                  {latestKey && GRADE_LABEL[latestKey].toUpperCase()}
                 </span>
               )}
             {view.notes

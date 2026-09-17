@@ -108,16 +108,20 @@ export default function ResultDetails({ result }: { result: Result }) {
       {valid && (
         <>
           <div className={s.resultGrades}>
-            {[
-              ['Pure', j.perfect, j.pureplus ? `${j.pureplus} Pure+` : ''],
-              ['Far', j.good, ''],
-              ['Miss', j.misses, ''],
-              ['Extra', j.extras, ''],
-            ].map(([label, value, note]) => (
-              <div key={label}>
+            {(
+              [
+                ['perfect', 'Pure', j.perfect],
+                ['good', 'Far', j.good],
+                ['miss', 'Miss', j.misses],
+                ['extra', 'Extra', j.extras],
+              ] as const
+            ).map(([grade, label, value]) => (
+              <div key={grade} data-grade={grade}>
                 <span>{label}</span>
                 <strong>{value}</strong>
-                {note && <small>{note}</small>}
+                {grade === 'perfect' && !!j.pureplus && (
+                  <small data-grade="pureplus">{j.pureplus} Pure+</small>
+                )}
               </div>
             ))}
           </div>
