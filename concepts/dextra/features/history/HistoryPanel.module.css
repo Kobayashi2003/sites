@@ -1,0 +1,237 @@
+.panel {
+  padding-bottom: 20px;
+}
+.intro {
+  color: var(--subtle);
+  margin: 0 0 20px;
+  line-height: 1.6;
+}
+.scope {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: var(--soft);
+  border-radius: 10px;
+}
+.panel button {
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.scope button,
+.empty button {
+  border: 1px solid transparent;
+  border-radius: 7px;
+  min-height: 44px;
+  background: transparent;
+  font-size: var(--font-body);
+  padding: 8px;
+}
+.scope button[aria-pressed='true'] {
+  background: var(--surface);
+  border-color: var(--chosen-edge);
+  color: var(--chosen-ink);
+}
+.panel button:focus-visible,
+.panel summary:focus-visible,
+.explanation summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.filters {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+.filterField,
+.sortField {
+  display: grid;
+  gap: 6px;
+  font-size: var(--font-body);
+  color: var(--subtle);
+  min-width: 0;
+}
+.filterField {
+  grid-column: span 3;
+}
+.exerciseField {
+  grid-column: span 2;
+}
+.configurationField {
+  grid-column: span 4;
+}
+.filterField > :last-child,
+.sortField > :last-child {
+  width: 100%;
+  min-width: 0;
+}
+.configuration {
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid var(--chosen-edge);
+  background: var(--selected);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.configuration > strong {
+  display: block;
+  font-size: var(--font-heading);
+  margin: 6px 0;
+  font-variant-numeric: tabular-nums;
+}
+.configuration p {
+  margin: 8px 0;
+  color: var(--subtle);
+  font-size: var(--font-body);
+  line-height: 1.6;
+}
+.eyebrow {
+  color: var(--accent);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.12em;
+}
+.listHead {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0 12px;
+}
+.listHead output,
+.hint {
+  font-size: var(--font-body);
+  color: var(--subtle);
+}
+.sortField {
+  max-width: 160px;
+}
+.hint {
+  line-height: 1.6;
+}
+.recordsViewport {
+  height: clamp(220px, 55dvh, 560px);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  list-style: none;
+}
+.virtualTrack {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.virtualRow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  padding-bottom: 10px;
+  overflow-anchor: none;
+}
+.panel .record {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+}
+.record:hover {
+  background: var(--soft);
+  border-color: var(--chosen-edge);
+}
+.recordTop,
+.recordBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.recordTop strong {
+  overflow-wrap: anywhere;
+}
+.recordTop b {
+  font-size: var(--font-subtitle);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.recordMeta {
+  color: var(--subtle);
+  font-size: var(--font-body);
+  line-height: 1.5;
+}
+.recordSequence {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: var(--font-body);
+  line-height: 1.5;
+}
+.recordBottom {
+  color: var(--subtle);
+  font-size: var(--font-meta);
+}
+.best {
+  color: var(--chosen-ink);
+  background: var(--chosen);
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-weight: var(--weight-semibold);
+}
+.empty {
+  padding: 28px 12px;
+  text-align: center;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+}
+.empty p,
+.legacy {
+  color: var(--subtle);
+  line-height: 1.6;
+  font-size: var(--font-body);
+}
+.empty button {
+  color: var(--accent);
+  border-color: var(--line);
+}
+.ratingValue.ratingValue {
+  font-size: var(--font-display);
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+.ratingValue small {
+  margin-left: 6px;
+}
+@media (max-width: 380px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+  .filterField,
+  .exerciseField,
+  .configurationField {
+    grid-column: 1;
+  }
+  .record {
+    padding: 12px;
+  }
+  .scope {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel button {
+    transition: none;
+  }
+}

@@ -1,3 +1,5 @@
+import type { HanonConfig } from '../engine/hanon';
+import type { RecordConfiguration } from './records';
 export const fingers = ['Pinky', 'Ring', 'Middle', 'Index', 'Thumb'];
 export const defaults = ['ShiftLeft', 'KeyA', 'KeyS', 'KeyD', 'KeyF', 'Space'];
 export const defaultFingers = [0, 0, 1, 2, 3, 4];
@@ -21,6 +23,9 @@ export const lifeOptions = [1, 3, 5, 10];
 export const timeOptions = [30, 60, 120];
 export type Status = 'idle' | 'running' | 'paused' | 'done';
 export type Result = {
+  id?: string;
+  configuration?: RecordConfiguration;
+  hanon?: HanonConfig;
   date: string;
   mode: string;
   accuracy: number;

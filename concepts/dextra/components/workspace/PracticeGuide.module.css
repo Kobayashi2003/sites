@@ -1,0 +1,288 @@
+/* Collapsible panels: a toggle in each panel, a 52px rail when folded. */
+.panelTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -6px -6px 0 0;
+}
+:global([data-dextra-root]) .panelToggle {
+  flex: none;
+  width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  color: var(--subtle);
+}
+:global([data-dextra-root]) .panelToggle:hover {
+  color: var(--ink);
+}
+.guideTop {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 0 0 4px;
+}
+:global([data-dextra-root]) .railToggle {
+  display: none;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
+}
+:global([data-dextra-root]) .railToggle:hover {
+  background: var(--paper);
+}
+.railToggle > span {
+  writing-mode: vertical-rl;
+  color: var(--subtle);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+@media (min-width: 561px) {
+  .practiceLayout[data-left-collapsed='true'] {
+    --left-col: 52px;
+  }
+  .controlColumn[data-collapsed='true'] .controlScroll {
+    display: none;
+  }
+  :global([data-dextra-root])
+    .controlColumn[data-collapsed='true']
+    .railToggle {
+    display: flex;
+  }
+}
+@media (min-width: 951px) {
+  .practiceLayout[data-right-collapsed='true'] {
+    --right-col: 52px;
+  }
+  .practiceGuide[data-collapsed='true'] {
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .practiceGuide[data-collapsed='true'] > :not(.railToggle) {
+    display: none;
+  }
+  :global([data-dextra-root])
+    .practiceGuide[data-collapsed='true']
+    .railToggle {
+    display: flex;
+  }
+}
+
+/* 7. Right panel: reference cards. */
+.practiceGuide {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+.guideCard {
+  flex: none;
+  display: grid;
+  gap: 10px;
+  padding: var(--panel-pad);
+  box-shadow: none;
+}
+.guideCard h2 {
+  margin: 0;
+  font-size: var(--font-subtitle);
+  line-height: 1.3;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.3px;
+}
+.guideCard p {
+  margin: 0;
+  color: var(--subtle);
+  font-size: var(--font-body);
+  line-height: 1.6;
+}
+:global([data-dextra-root]) .guideLink {
+  min-height: 36px;
+  margin-top: 2px;
+  padding: 8px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
+  justify-content: space-between;
+  font-size: var(--font-body);
+}
+:global([data-dextra-root]) .guideLink:hover {
+  background: transparent;
+  border-color: var(--line);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(104px, 100%), 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.statGrid > div {
+  display: flex;
+  min-height: 72px;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+}
+.statGrid dt {
+  color: var(--subtle);
+  font-size: var(--font-caption);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+.statGrid dd {
+  margin: 8px 0 0;
+  font-size: var(--font-heading);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ratingValue {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35em;
+  row-gap: 0.2em;
+}
+.ratingNumber {
+  min-width: 0;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+.ratingUnit {
+  max-width: 100%;
+  color: var(--subtle);
+  font:
+    var(--weight-medium) var(--font-unit)/1 var(--font-geist-mono),
+    monospace;
+  letter-spacing: 0.01em;
+}
+.recentRuns {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.recentRuns li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--font-meta);
+  font-variant-numeric: tabular-nums;
+}
+.recentRuns li > span,
+.recentRuns strong {
+  min-width: 0;
+}
+.recentRuns strong {
+  text-align: right;
+}
+.recentRuns li:last-child {
+  border-bottom: 0;
+}
+.recentRuns .ratingValue {
+  gap: 0.3em;
+}
+.recentRuns .ratingUnit {
+  font-size: var(--font-unit);
+}
+.recentRuns li > span {
+  color: var(--subtle);
+}
+.fingerMap {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fingerMap li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.fingerMap li:last-child {
+  border-bottom: 0;
+}
+.fingerMap span {
+  color: var(--subtle);
+  font-size: var(--font-meta);
+  font-variant-numeric: tabular-nums;
+}
+.fingerMap span:last-child {
+  text-align: right;
+}
+.fingerMap kbd {
+  min-width: 0;
+  overflow: hidden;
+  padding: 3px 8px;
+  border: 1px solid var(--key-edge);
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  background: linear-gradient(var(--key-tint), var(--key-tint)), var(--key);
+  box-shadow: inset 3px 0 var(--lane-tint, transparent);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-meta);
+}
+.guideCard .guideTip {
+  padding: 2px 0 2px 10px;
+  border-left: 2px solid var(--accent);
+  font-size: var(--font-meta);
+}
+
+@media (max-width: 950px) {
+  .guideTop {
+    display: none;
+  }
+}
+
+.eyebrow {
+  display: block;
+  color: var(--accent);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 1.6px;
+}
+
+.panelHeading {
+  margin: 0;
+  color: var(--subtle);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}

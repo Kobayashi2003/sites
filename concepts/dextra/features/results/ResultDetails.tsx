@@ -1,9 +1,25 @@
+import {
+  practiceRating,
+  configurationSummary,
+  validConfiguration,
+} from '../../engine/records';
+import { fingers, keyLabel } from '../../model/training';
+import BenchmarkNotice from '../history/BenchmarkNotice';
+import RatingGuide from '../history/RatingGuide';
 import type { Result } from '../../model/training';
-import s from '../../styles.module.css';
+import { validHanon } from '../../engine/hanon';
+import s from './ResultDetails.module.css';
 
 const seconds = (ms = 0, digits = 2) => `${(ms / 1000).toFixed(digits)}`;
 
-export default function ResultDetails({ result }: { result: Result }) {
+export default function ResultDetails({
+  result,
+  history,
+}: {
+  result: Result;
+  history: Result[];
+}) {
+  const rating = practiceRating(result);
   const j = result.judgements;
   const valid =
     j &&
@@ -22,47 +38,40 @@ export default function ResultDetails({ result }: { result: Result }) {
   const survival = result.challenge === 'endless';
   return (
     <>
+      {validHanon(result.hanon) && (
+        <p className={s.motionNote}>
+          Hanon {result.hanon.queue.join(' → ')} · {result.hanon.repeat}× · 1/
+          {result.hanon.division} ·{' '}
+          {result.hanon.traversal === 'both'
+            ? 'Ascending + descending'
+            : result.hanon.traversal === 'up'
+              ? 'Ascending'
+              : 'Descending'}
+        </p>
+      )}
       <div className={s.resultScore}>
-        {result.rank && (
-          <span className={s.resultRank} data-rank={result.rank}>
-            {result.rank}
-          </span>
-        )}
-        <strong>
-          {result.format === 'static' ? (
-            survival ? (
-              <>
-                {result.hits}
-                <small> groups</small>
-              </>
-            ) : (
-              <>
-                {seconds(result.durationMs)}
-                <small>s</small>
-              </>
-            )
-          ) : scored ? (
-            result.score!.toLocaleString('en-US')
-          ) : (
-            <>
-              {result.accuracy}
-              <small>%</small>
-            </>
-          )}
+        <strong className={s.ratingValue}>
+          {rating
+            ? rating.value.toLocaleString('en-US', { maximumFractionDigits: 2 })
+            : '—'}
+          {rating && <small>{rating.unit}</small>}
         </strong>
-        <span>
-          {result.format === 'static'
-            ? survival
-              ? `Cleared in ${result.limit}s`
-              : 'Active time'
-            : scored
-              ? result.maxScore
-                ? `Score · ${Math.round((result.score! / result.maxScore) * 100)}% of max`
-                : 'Score'
-              : 'Accuracy'}
-        </span>
+        <span>{rating?.label ?? 'Rating unavailable'}</span>
       </div>
+      <BenchmarkNotice result={result} history={history} />
       <dl className={s.resultStats}>
+        {scored && (
+          <div>
+            <dt>Arcade points {result.rank ? '· ' + result.rank : ''}</dt>
+            <dd>{result.score!.toLocaleString('en-US')}</dd>
+          </div>
+        )}
+        {result.format === 'static' && (
+          <div>
+            <dt>Active time</dt>
+            <dd>{seconds(result.durationMs)}s</dd>
+          </div>
+        )}
         {(scored || result.format === 'static') && (
           <div>
             <dt>Accuracy</dt>
@@ -161,6 +170,21 @@ export default function ResultDetails({ result }: { result: Result }) {
           .filter(Boolean)
           .join(' · ')}
       </p>
+      <RatingGuide />
+      {validConfiguration(result.configuration) && (
+        <details className={s.configurationDisclosure}>
+          <summary>Recorded configuration</summary>
+          <p>{configurationSummary(result.configuration)}</p>
+          <p>
+            {result.configuration.keys
+              .map(
+                (key, i) =>
+                  `${keyLabel(key)}: ${fingers[result.configuration!.mapping[i]]}`,
+              )
+              .join(' · ')}
+          </p>
+        </details>
+      )}
       {!valid && result.format !== 'static' && (
         <p className={s.resultContext}>
           This older session has no detailed timing breakdown.

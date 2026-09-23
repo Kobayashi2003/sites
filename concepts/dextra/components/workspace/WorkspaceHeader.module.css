@@ -1,0 +1,139 @@
+.header {
+  flex: none;
+  min-height: 64px;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  z-index: 5;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--surface);
+  font-size: var(--font-title);
+  line-height: 1;
+}
+
+.brand strong {
+  font-size: var(--font-subtitle);
+  letter-spacing: 1px;
+}
+
+.brandSuffix {
+  color: var(--subtle);
+  font-weight: var(--weight-regular);
+}
+
+.identity {
+  color: var(--subtle);
+  font-size: var(--font-caption);
+  letter-spacing: 1.8px;
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+
+:global([data-dextra-root]) .actions > button {
+  min-height: 38px;
+  border-color: transparent;
+  background: transparent;
+  font-size: var(--font-body);
+}
+
+:global([data-dextra-root]) .actions > button:hover {
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+:global([data-dextra-root]) .actions > :global([data-select-control]) > button {
+  min-height: 38px;
+  background: var(--surface);
+}
+
+@media (max-width: 1150px) {
+  .identity {
+    display: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 16px;
+  }
+
+  .brand strong {
+    font-size: var(--font-control);
+  }
+
+  .actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .actions > :global([data-select-control]) {
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .header {
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .brand > span {
+    width: 28px;
+    height: 28px;
+    font-size: var(--font-heading);
+  }
+
+  .brand strong {
+    font-size: var(--font-body);
+  }
+  .brandSuffix {
+    display: none;
+  }
+
+  .actions {
+    width: auto;
+    margin-left: auto;
+    gap: 2px;
+  }
+
+  .actions > :global([data-select-control]) {
+    min-width: 76px;
+    margin: 0;
+  }
+
+  :global([data-dextra-root]) .actions button {
+    padding: 6px;
+    font-size: var(--font-meta);
+  }
+}

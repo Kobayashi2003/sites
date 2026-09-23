@@ -1,0 +1,53 @@
+.empty p,
+.legacy {
+  color: var(--subtle);
+  line-height: 1.6;
+  font-size: var(--font-body);
+}
+.empty button {
+  color: var(--accent);
+  border-color: var(--line);
+}
+.benchmark {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  max-width: 520px;
+  margin: 16px auto 28px;
+  text-align: center;
+  line-height: 1.5;
+}
+.milestone {
+  display: inline-flex;
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--subtle);
+  font-size: var(--font-body);
+  font-weight: var(--weight-semibold);
+}
+.benchmark[data-best='true'] .milestone {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--line));
+  color: var(--accent);
+}
+.benchmark span,
+.benchmark small {
+  color: var(--subtle);
+  font-size: var(--font-body);
+}
+.bestComparison {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 4px;
+}
+.bestComparison b {
+  color: var(--ink);
+  font-size: var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+.bestComparison small {
+  flex-basis: 100%;
+}

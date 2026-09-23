@@ -1,12 +1,12 @@
 import { usePracticeAppearance } from './PracticeAppearance';
-import s from '../../styles.module.css';
+import s from './SoundSettings.module.css';
 
 export default function SoundSettings() {
   const { preferences, update } = usePracticeAppearance();
   return (
-    <section className={s.windowSettings} aria-labelledby="settings-sound">
+    <section className={s.section} aria-labelledby="settings-sound">
       <h3 id="settings-sound">Sound</h3>
-      <label className={s.keySoundToggle}>
+      <label className={s.toggle}>
         <span>Key sounds</span>
         <input
           type="checkbox"

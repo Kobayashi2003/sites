@@ -6,7 +6,7 @@ export const meta = {
   slug: 'dextra',
   title: 'DEXTRA / SIX — Left-hand studio',
   summary:
-    'A six-lane keyboard trainer with falling and static charts, random challenges, and detailed results.',
+    'A six-lane keyboard trainer with customizable Hanon sequences, falling and static charts, imported songs, and detailed results.',
   type: 'product prototype',
   status: 'published',
   year: 2026,
@@ -20,6 +20,8 @@ export const meta = {
   overview: {
     lede: 'DEXTRA / SIX is a practice studio for left-hand independence. Six remappable keys map to five fingers, and every exercise loads into one full-height chart. Notes can fall toward a hit line or wait in a stationary grid.',
     highlights: [
+      'Configuration-filtered history and personal bests, with accuracy, static efficiency and survival endurance ratings.',
+      '18 Hanon studies with key previews, ordered sequences, ascending or descending practice, repetitions and note values.',
       'Falling charts with Pure+, Pure and Far timing windows, combo-weighted scoring and S–D ranks.',
       'Static practice that measures active time and accuracy without a tempo.',
       'Survival with up to 10 lives and timed random challenges.',
@@ -30,7 +32,10 @@ export const meta = {
       { label: 'Input', value: 'Physical keyboard' },
       { label: 'Formats', value: 'Falling · Static' },
       { label: 'Storage', value: 'This browser only' },
-      { label: 'Session', value: '32 groups, open-ended or a full song' },
+      {
+        label: 'Session',
+        value: 'Hanon sequences, 32 groups, open-ended or a full song',
+      },
     ],
   },
 } satisfies ConceptMeta;

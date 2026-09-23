@@ -9,7 +9,7 @@ import {
   keyLabel,
 } from '../../model/training';
 import type { Status } from '../../model/training';
-import s from '../../styles.module.css';
+import s from './SettingsPanel.module.css';
 type Setter<T> = Dispatch<SetStateAction<T>>;
 type Props = {
   theme: 'system' | 'light' | 'dark';
@@ -82,10 +82,11 @@ export default function SettingsPanel({
           run.
         </p>
         <button
+          className={s.settingsReset}
           disabled={busy}
           onClick={() => setWindows({ perfect: 50, good: 100 })}
         >
-          Use Arcaea timing
+          Restore defaults
         </button>
         <label>
           Pure <strong>±{windows.perfect} ms</strong>

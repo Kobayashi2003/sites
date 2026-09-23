@@ -1,0 +1,20 @@
+.progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: var(--selected);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--font-body);
+  flex-shrink: 0;
+}
+.progress strong {
+  font-size: var(--font-meta);
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.progress small {
+  color: var(--subtle);
+}

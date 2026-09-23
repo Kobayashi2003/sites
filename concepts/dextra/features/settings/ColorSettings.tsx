@@ -1,7 +1,7 @@
 import { keyLabel } from '../../model/training';
 import { usePracticeAppearance } from './PracticeAppearance';
 import type { LaneColor } from './PracticeAppearance';
-import s from '../../styles.module.css';
+import s from './ColorSettings.module.css';
 export default function ColorSettings({ keys }: { keys: string[] }) {
   const { preferences, update, resetColors } = usePracticeAppearance();
   function change(lane: number, value: Partial<LaneColor>) {
@@ -12,7 +12,7 @@ export default function ColorSettings({ keys }: { keys: string[] }) {
     });
   }
   return (
-    <div>
+    <div className={s.panel}>
       <p>
         Set each track and key color independently. Track opacity stays below
         100%; notes and pressed keys use translucent colors.
@@ -61,7 +61,7 @@ export default function ColorSettings({ keys }: { keys: string[] }) {
           </div>
         ))}
       </div>
-      <button className={s.historyLink} onClick={resetColors}>
+      <button className={s.resetButton} onClick={resetColors}>
         Restore default colors
       </button>
     </div>

@@ -4,7 +4,7 @@ import {
   laneStyle,
   usePracticeAppearance,
 } from '../../features/settings/PracticeAppearance';
-import s from '../../styles.module.css';
+import s from './IntroCurtain.module.css';
 
 const SEEN_KEY = 'dextra-intro-seen';
 const MIN_PLAY_MS = 1250;
@@ -62,7 +62,6 @@ export default function IntroCurtain({ ready }: { ready: boolean }) {
           DEXTRA<span> / SIX</span>
         </strong>
         <small className={s.introCaption}>Left-hand rhythm studio</small>
-        <span className={s.introProgress} />
       </div>
     </div>
   );

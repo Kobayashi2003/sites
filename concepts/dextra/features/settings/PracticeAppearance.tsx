@@ -17,6 +17,8 @@ const defaultColors: LaneColor[] = [
 }));
 type Preferences = { colors: LaneColor[]; keySound: boolean };
 const defaults: Preferences = { colors: defaultColors, keySound: false };
+const APPEARANCE_KEY = 'dextra-appearance';
+const LEGACY_APPEARANCE_KEY = 'dextra-appearance-v1';
 const Context = createContext<{
   preferences: Preferences;
   update: (value: Partial<Preferences>) => void;
@@ -30,9 +32,11 @@ export function PracticeAppearance({ children }: { children: ReactNode }) {
     queueMicrotask(() => {
       if (cancelled) return;
       try {
-        const saved = JSON.parse(
-          localStorage.getItem('dextra-appearance-v1') || 'null',
-        );
+        const raw =
+          localStorage.getItem(APPEARANCE_KEY) ??
+          localStorage.getItem(LEGACY_APPEARANCE_KEY);
+        localStorage.removeItem(LEGACY_APPEARANCE_KEY);
+        const saved = JSON.parse(raw || 'null');
         if (
           saved &&
           Array.isArray(saved.colors) &&
@@ -64,10 +68,7 @@ export function PracticeAppearance({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (ready)
       try {
-        localStorage.setItem(
-          'dextra-appearance-v1',
-          JSON.stringify(preferences),
-        );
+        localStorage.setItem(APPEARANCE_KEY, JSON.stringify(preferences));
       } catch {
         /* Practice works without storage. */
       }

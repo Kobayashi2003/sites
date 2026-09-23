@@ -1,0 +1,58 @@
+.panel {
+  color: inherit;
+}
+
+.colorSettings {
+  display: grid;
+  gap: 12px;
+}
+
+.colorRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 66px 66px;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  align-items: center;
+}
+
+.colorRow > strong {
+  font-size: var(--font-body);
+}
+
+.panel .colorRow label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  font-size: var(--font-meta);
+}
+
+.colorRow input[type='color'] {
+  width: 44px;
+  height: 44px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.panel .colorRow .opacitySetting {
+  grid-column: 1 / -1;
+  flex-flow: row wrap;
+}
+
+:global([data-dextra-root]) .resetButton {
+  margin-top: 16px;
+  color: var(--accent);
+  font-size: var(--font-body);
+}
+
+@media (max-width: 400px) {
+  .colorRow {
+    grid-template-columns: minmax(0, 1fr) 56px 56px;
+    padding: 10px;
+  }
+}

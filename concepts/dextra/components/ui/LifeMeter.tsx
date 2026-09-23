@@ -1,5 +1,5 @@
 import Icon from './Icon';
-import s from '../../styles.module.css';
+import s from './LifeMeter.module.css';
 
 /** Remaining survival lives as a row of hearts, with a text equivalent. */
 export default function LifeMeter({

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PointerEvent } from 'react';
 import { PANEL_MAX, PANEL_MIN } from '../../hooks/usePanelWidths';
-import s from '../../styles.module.css';
+import s from './ResizableDivider.module.css';
 type Props = {
   side: 'left' | 'right';
   value: number;
@@ -76,6 +76,8 @@ export default function ResizableDivider({
       role="separator"
       ref={handle}
       className={s.resizeHandle}
+      data-dextra-divider
+      data-side={side}
       data-dragging={dragging || undefined}
       aria-label={`Resize ${side === 'left' ? 'controls' : 'guide'} panel`}
       aria-controls={controls}

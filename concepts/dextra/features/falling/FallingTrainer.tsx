@@ -5,7 +5,10 @@ import {
   laneStyle,
 } from '../settings/PracticeAppearance';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { hanonSteps, hanonInterval } from '../../engine/hanon';
+import type { HanonConfig } from '../../engine/hanon';
+import HanonProgress from '../hanon/HanonProgress';
 import {
   advanceRhythm,
   comboMultiplier,
@@ -28,7 +31,9 @@ import { useSongPlayer } from '../../hooks/useSongPlayer';
 import { StageControls } from '../../components/workspace/StageContext';
 import Icon from '../../components/ui/Icon';
 import LifeMeter from '../../components/ui/LifeMeter';
-import s from '../../styles.module.css';
+import Button from '../../components/ui/Button';
+import PanelSection from '../../components/ui/PanelSection';
+import s from './FallingTrainer.module.css';
 import { fingers, keyLabel } from '../../model/training';
 import type { Status, Result } from '../../model/training';
 
@@ -62,6 +67,8 @@ const clockText = (ms: number) => {
 };
 /** Imported charts end shortly after their last note, not at the outro. */
 const SONG_TAIL = 1200;
+const DISPLAY_KEY = 'dextra-display';
+const LEGACY_DISPLAY_KEYS = ['dextra-chart-v2', 'dextra-chart'] as const;
 
 const worstOffset = (offsets: Record<number, number>) =>
   Object.values(offsets).reduce(
@@ -70,10 +77,12 @@ const worstOffset = (offsets: Record<number, number>) =>
   );
 
 type Props = {
+  hanon: HanonConfig;
   direction: 'down' | 'up';
   challenge: 'standard' | 'endless';
   limit: number;
   initialBpm: number;
+  onBpm: (value: number) => void;
   program: ProgramId;
   windows: { perfect: number; good: number };
   keys: string[];
@@ -85,10 +94,12 @@ type Props = {
   songAudio: SongAudio;
 };
 export default function FallingTrainer({
+  hanon,
   program,
   challenge,
   limit,
   initialBpm,
+  onBpm,
   direction,
   windows,
   keys,
@@ -104,10 +115,13 @@ export default function FallingTrainer({
   } = usePracticeAppearance();
   const keyAudioNotice = useKeyAudio(status, keys);
   const [bpm, setBpm] = useState(initialBpm);
+  const steps = useMemo(
+    () => (program === 'hanon' && !song ? hanonSteps(hanon) : []),
+    [program, song, hanon],
+  );
   const [speed, setSpeed] = useState(1);
   const [showWindow, setShowWindow] = useState(false);
   const [preferencesReady, setPreferencesReady] = useState(false);
-  const displaySettings = useRef<HTMLDetailsElement | null>(null);
   const [reduced, setReduced] = useState(false);
   const build = useCallback(
     (tempo: number) =>
@@ -119,8 +133,9 @@ export default function FallingTrainer({
             program,
             windows,
             challenge === 'endless' ? limit : 0,
+            hanon,
           ),
-    [song, mapping, program, windows, challenge, limit],
+    [song, mapping, program, windows, challenge, limit, hanon],
   );
   const player = useSongPlayer(
     song?.buffer ?? null,
@@ -164,9 +179,13 @@ export default function FallingTrainer({
     queueMicrotask(() => {
       if (cancelled) return;
       try {
-        const saved = JSON.parse(
-          localStorage.getItem('dextra-chart-v2') || 'null',
-        );
+        const raw =
+          localStorage.getItem(DISPLAY_KEY) ??
+          LEGACY_DISPLAY_KEYS.map((key) => localStorage.getItem(key)).find(
+            Boolean,
+          );
+        LEGACY_DISPLAY_KEYS.forEach((key) => localStorage.removeItem(key));
+        const saved = JSON.parse(raw || 'null');
         if (saved && typeof saved === 'object') {
           if (
             Number.isFinite(saved.speed) &&
@@ -190,7 +209,7 @@ export default function FallingTrainer({
     if (preferencesReady)
       try {
         localStorage.setItem(
-          'dextra-chart-v2',
+          DISPLAY_KEY,
           JSON.stringify({ speed, showWindow }),
         );
       } catch {
@@ -263,6 +282,7 @@ export default function FallingTrainer({
               ? song.name
               : programs.find((p) => p.id === program)!.name,
             songId: song?.id,
+            hanon: steps.length ? hanon : undefined,
             difficulty: song?.difficulty,
             accuracy: result.accuracy,
             hits: result.hits,
@@ -315,6 +335,8 @@ export default function FallingTrainer({
     onComplete,
     song,
     player,
+    hanon,
+    steps,
   ]);
 
   useEffect(() => {
@@ -359,13 +381,11 @@ export default function FallingTrainer({
   function togglePlayback() {
     if (status === 'running') onStatus('paused');
     else if (status === 'paused') {
-      if (displaySettings.current) displaySettings.current.open = false;
       onStatus('running');
     } else start();
   }
 
   function start() {
-    if (displaySettings.current) displaySettings.current.open = false;
     const state = build(bpm);
     engine.current = state;
     completed.current = false;
@@ -380,10 +400,7 @@ export default function FallingTrainer({
       data-display-ready={preferencesReady}
     >
       <StageControls>
-        <section className={s.panelSection} aria-labelledby="panel-tempo">
-          <h3 className={s.panelHeading} id="panel-tempo">
-            {song ? 'Song' : 'Tempo'}
-          </h3>
+        <PanelSection id="panel-tempo" title={song ? 'Song' : 'Tempo'}>
           {song ? (
             <>
               <div className={s.songFacts}>
@@ -445,12 +462,16 @@ export default function FallingTrainer({
               <input
                 id="falling-tempo"
                 type="range"
-                min="30"
-                max="150"
+                min={steps.length ? 20 : 30}
+                max={steps.length ? 240 : 150}
                 step="5"
                 value={bpm}
                 disabled={busy}
-                onChange={(e) => setBpm(Number(e.target.value))}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  setBpm(value);
+                  onBpm(value);
+                }}
               />
             </div>
           )}
@@ -487,23 +508,11 @@ export default function FallingTrainer({
             </p>
           )}
           {audioIssue && <output className={s.motionNote}>{audioIssue}</output>}
-        </section>
-        <details
-          ref={displaySettings}
-          className={s.chartSettings}
-          onToggle={(e) => {
-            if (e.currentTarget.open && status === 'running')
-              onStatus('paused');
-          }}
-        >
-          <summary>
-            <span>Display</span>
-            <span>
-              {reduced ? 'Fixed' : `${speed.toFixed(2)}×`} · Window{' '}
-              {showWindow ? 'on' : 'off'}
-              <b aria-hidden="true">⌄</b>
-            </span>
-          </summary>
+        </PanelSection>
+        <section className={s.chartSettings} aria-labelledby="display-title">
+          <div className={s.chartSettingsHeader}>
+            <strong id="display-title">Display</strong>
+          </div>
           <div className={s.chartSettingsBody}>
             <div className={s.chartSetting}>
               <label htmlFor="chart-speed">
@@ -550,13 +559,10 @@ export default function FallingTrainer({
                 The outer band marks Far; the inner band marks Pure. Aim for the
                 center line for Pure+.
               </p>
-              <p>
-                Display settings never change BPM or scoring. Opening this panel
-                pauses your session.
-              </p>
+              <p>Display settings never change BPM or scoring.</p>
             </div>
           </div>
-        </details>
+        </section>
         <StageControls slot="status">
           <div className={s.sessionCard} data-state={status}>
             <div className={s.sessionHead}>
@@ -592,7 +598,7 @@ export default function FallingTrainer({
                 <span>
                   {song
                     ? `${clockText(view.elapsed - LEAD_IN)} / ${clockText(song.duration * 1000)} · ${DIFFICULTIES.find((d) => d.id === song.difficulty)?.label}`
-                    : `Phrase ${Math.min(4, Math.floor(stats.judged / 8) + 1)} of 4`}
+                    : `Phrase ${Math.min(Math.ceil(stats.total / 8), Math.floor(stats.judged / 8) + 1)} of ${Math.ceil(stats.total / 8)}`}
                 </span>
               </div>
             )}
@@ -607,9 +613,10 @@ export default function FallingTrainer({
         </StageControls>
         <StageControls slot="playback">
           <div className={s.playButtons}>
-            <button
+            <Button
               ref={startButton}
-              className={s.startButton}
+              tone="primary"
+              className={s.primaryAction}
               onClick={togglePlayback}
             >
               <Icon name={status === 'running' ? 'pause' : 'play'} />
@@ -620,9 +627,10 @@ export default function FallingTrainer({
                   : status === 'done'
                     ? 'Retry'
                     : 'Start'}
-            </button>
-            <button
-              className={s.endButton}
+            </Button>
+            <Button
+              tone="danger"
+              className={s.secondaryAction}
               disabled={!busy}
               onClick={() => {
                 onStatus('idle');
@@ -632,10 +640,30 @@ export default function FallingTrainer({
             >
               <Icon name="stop" />
               End
-            </button>
+            </Button>
           </div>
         </StageControls>
       </StageControls>
+      {steps.length > 0 && (
+        <HanonProgress
+          step={
+            steps[
+              Math.min(
+                steps.length - 1,
+                Math.max(
+                  0,
+                  Math.floor(
+                    (view.elapsed - LEAD_IN) /
+                      hanonInterval(bpm, hanon.division),
+                  ),
+                ),
+              )
+            ]
+          }
+          total={hanon.queue.length}
+          repeat={hanon.repeat}
+        />
+      )}
       <div className={s.stageHud} aria-label="Run score">
         <div>
           <span>Score</span>
@@ -818,7 +846,9 @@ export default function FallingTrainer({
               ? `${stats.hits} / ${stats.total} clean hits`
               : song
                 ? `♪ ${song.name}`
-                : '3s lead-in · 1 note per beat'}
+                : steps.length
+                  ? `3s lead-in · ${hanon.division / 4} ${hanon.division === 4 ? 'note' : 'notes'} per beat`
+                  : '3s lead-in · 1 note per beat'}
         </span>
       </div>
     </section>

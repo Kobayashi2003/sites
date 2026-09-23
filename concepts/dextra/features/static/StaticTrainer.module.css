@@ -1,0 +1,237 @@
+.panelSection {
+  display: grid;
+  gap: 12px;
+  padding: var(--panel-pad);
+  border-top: 1px solid var(--line);
+}
+.sessionCard {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+.sessionCard[data-state='running'] {
+  border-color: var(--chosen-edge);
+}
+.sessionCard[data-state='paused'] {
+  border-color: var(--warn);
+}
+.sessionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sessionHead strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-control);
+  font-weight: var(--weight-semibold);
+}
+.sessionHead strong::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--key-edge);
+}
+.sessionCard[data-state='running'] .sessionHead strong::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--chosen);
+}
+.sessionCard[data-state='paused'] .sessionHead strong::before {
+  background: var(--warn);
+}
+.sessionHead span {
+  color: var(--subtle);
+  font-size: var(--font-meta);
+  white-space: nowrap;
+}
+.sessionMeter {
+  display: grid;
+  gap: 6px;
+}
+.sessionMeter > span,
+.sessionHint {
+  color: var(--subtle);
+  font-size: var(--font-caption);
+  line-height: 1.4;
+}
+.sessionHint {
+  margin: 0;
+}
+.lifeMeter {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  color: var(--danger);
+}
+.lifeMeter[data-low] {
+  font-weight: var(--weight-semibold);
+}
+.lifeMeter svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+.lifeMeter [data-lost] {
+  opacity: 0.25;
+}
+.lifeMeter [data-lost] svg {
+  fill: none;
+}
+.motionNote {
+  display: block;
+  margin: 0;
+  color: var(--subtle);
+  font-size: var(--font-meta);
+  line-height: 1.5;
+}
+.playButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* End drops below Start when the panel is too narrow for both labels. */
+:global([data-dextra-root]) .playButtons .primaryAction {
+  flex: 999 1 7.5em;
+}
+:global([data-dextra-root]) .playButtons .secondaryAction {
+  flex: 1 0 auto;
+}
+:global([data-dextra-root]) .playButtons .primaryAction {
+  min-width: 0;
+  min-height: 46px;
+  font-size: var(--font-control);
+}
+:global([data-dextra-root]) .playButtons .secondaryAction {
+  min-height: 46px;
+  padding: 8px 12px;
+  font-size: var(--font-body);
+}
+.workbench {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+}
+.stageHud {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  font-variant-numeric: tabular-nums;
+}
+.stageHud > div {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border-right: 1px solid var(--line);
+}
+.stageHud > div:last-child {
+  border-right: 0;
+}
+.stageHud > div > span {
+  color: var(--subtle);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.stageHud strong {
+  overflow: hidden;
+  font-size: var(--font-heading);
+  font-weight: var(--weight-semibold);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stageHud small {
+  margin-left: 6px;
+  color: var(--accent);
+  font-size: var(--font-meta);
+  font-weight: var(--weight-medium);
+}
+.stageHud .lifeMeter {
+  min-height: 25px;
+}
+.staticChart {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+.staticKeys,
+.staticRow {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  text-align: center;
+}
+.staticKeys {
+  flex: none;
+  color: var(--subtle);
+  font-size: var(--font-meta);
+}
+.staticChart[data-direction='down'] .staticKeys {
+  order: 1;
+  border-top: 1px solid var(--line);
+}
+.staticKeys > span {
+  padding: 12px 4px;
+  border-right: 1px solid var(--line);
+  background-color: var(--lane-tint, transparent);
+}
+.staticRow {
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--line);
+}
+.staticChart[data-direction='down'] .staticKeys + .staticRow {
+  border-top: 0;
+}
+.staticRow > span {
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+  background-color: var(--lane-tint, transparent);
+}
+.staticKeys > span:last-child,
+.staticRow > span:last-child {
+  border-right: 0;
+}
+.staticRow i {
+  width: 60%;
+  height: 10px;
+  border-radius: 4px;
+  background: var(--note-color, var(--accent));
+}
+.staticRow[data-current='true'] {
+  background: var(--target);
+  box-shadow: inset 3px 0 var(--accent);
+}
+.staticRow[data-current='true'] i {
+  opacity: 1;
+  box-shadow: 0 0 0 1px var(--key-edge);
+}
+.staticRow[data-future='true'] i {
+  opacity: 0.32;
+}
+.staticRow[data-done='true'] {
+  opacity: 0.25;
+}
+.staticRow span[data-held='true'] {
+  background:
+    linear-gradient(var(--key-active), var(--key-active)), var(--lane-tint);
+}

@@ -1,0 +1,30 @@
+.explanation {
+  margin: 24px 0 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--font-body);
+  color: var(--subtle);
+  line-height: 1.6;
+}
+.explanation summary,
+.configuration summary {
+  cursor: pointer;
+  min-height: 44px;
+  align-content: center;
+  color: var(--ink);
+  font-size: var(--font-body);
+}
+.explanation p {
+  margin: 12px 0;
+}
+.explanation dl {
+  display: grid;
+  gap: 12px;
+}
+.explanation dt {
+  font-weight: var(--weight-semibold);
+  color: var(--ink);
+}
+.explanation dd {
+  margin: 4px 0 0;
+}

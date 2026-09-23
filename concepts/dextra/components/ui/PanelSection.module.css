@@ -1,0 +1,15 @@
+.section {
+  display: grid;
+  gap: 12px;
+  padding: var(--panel-pad);
+  border-top: 1px solid var(--line);
+}
+
+.heading {
+  margin: 0;
+  color: var(--subtle);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}

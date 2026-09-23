@@ -4,7 +4,10 @@ import {
   usePracticeAppearance,
   laneStyle,
 } from '../settings/PracticeAppearance';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { hanonSteps } from '../../engine/hanon';
+import type { HanonConfig } from '../../engine/hanon';
+import HanonProgress from '../hanon/HanonProgress';
 import {
   createStatic,
   pressStatic,
@@ -16,14 +19,18 @@ import type { ProgramId } from '../../engine/rhythm';
 import { keyLabel } from '../../model/training';
 import type { Result, Status } from '../../model/training';
 import Icon from '../../components/ui/Icon';
+import Button from '../../components/ui/Button';
 import { StageControls } from '../../components/workspace/StageContext';
-import s from '../../styles.module.css';
-function newRun(mapping: number[], program: ProgramId) {
+import s from './StaticTrainer.module.css';
+function newRun(mapping: number[], program: ProgramId, hanon: HanonConfig) {
   return createStatic(
-    createRhythm(60, mapping, program).notes.map((n) => n.lanes),
+    createRhythm(60, mapping, program, undefined, 0, hanon).notes.map(
+      (n) => n.lanes,
+    ),
   );
 }
 export default function StaticTrainer({
+  hanon,
   keys,
   mapping,
   program,
@@ -34,6 +41,7 @@ export default function StaticTrainer({
   challenge,
   limit,
 }: {
+  hanon: HanonConfig;
   keys: string[];
   mapping: number[];
   program: ProgramId;
@@ -48,8 +56,12 @@ export default function StaticTrainer({
     preferences: { colors },
   } = usePracticeAppearance();
   const keyAudioNotice = useKeyAudio(status, keys);
+  const steps = useMemo(
+    () => (program === 'hanon' ? hanonSteps(hanon) : []),
+    [program, hanon],
+  );
   const [view, setView] = useState(() =>
-    newRun(mapping, challenge === 'endless' ? 'random' : program),
+    newRun(mapping, challenge === 'endless' ? 'random' : program, hanon),
   );
   const engine = useRef(view);
   const startButton = useRef<HTMLButtonElement>(null);
@@ -61,7 +73,7 @@ export default function StaticTrainer({
     let cancelled = false;
     queueMicrotask(() => {
       if (!cancelled) {
-        const next = newRun(mapping, endless ? 'random' : program);
+        const next = newRun(mapping, endless ? 'random' : program, hanon);
         engine.current = next;
         setView(next);
       }
@@ -69,7 +81,7 @@ export default function StaticTrainer({
     return () => {
       cancelled = true;
     };
-  }, [status, mapping, program, endless]);
+  }, [status, mapping, program, endless, hanon]);
   useEffect(() => {
     if (status !== 'running') return;
     const state = engine.current;
@@ -84,6 +96,7 @@ export default function StaticTrainer({
         mode: programs.find((p) => p.id === (endless ? 'random' : program))!
           .name,
         format: 'static',
+        hanon: steps.length ? hanon : undefined,
         direction,
         challenge,
         limit,
@@ -168,13 +181,15 @@ export default function StaticTrainer({
     endless,
     limit,
     challenge,
+    hanon,
+    steps.length,
   ]);
   const page = Math.floor(Math.min(view.index, view.groups.length - 1) / 8);
   function play() {
     if (status === 'running') onStatus('paused');
     else if (status === 'paused') onStatus('running');
     else {
-      engine.current = newRun(mapping, endless ? 'random' : program);
+      engine.current = newRun(mapping, endless ? 'random' : program, hanon);
       reported.current = false;
       setView(engine.current);
       onStatus('running');
@@ -214,7 +229,7 @@ export default function StaticTrainer({
             </strong>
             <span>
               {view.index}
-              {endless ? ' groups' : ' / 32'}
+              {endless ? ' groups' : ` / ${view.groups.length}`}
             </span>
           </div>
           <div className={s.sessionMeter}>
@@ -248,12 +263,18 @@ export default function StaticTrainer({
       </StageControls>
       <StageControls slot="playback">
         <div className={s.playButtons}>
-          <button ref={startButton} className={s.startButton} onClick={play}>
+          <Button
+            ref={startButton}
+            tone="primary"
+            className={s.primaryAction}
+            onClick={play}
+          >
             <Icon name={status === 'running' ? 'pause' : 'play'} />
             {label}
-          </button>
-          <button
-            className={s.endButton}
+          </Button>
+          <Button
+            tone="danger"
+            className={s.secondaryAction}
             disabled={status !== 'running' && status !== 'paused'}
             onClick={() => {
               onStatus('idle');
@@ -263,9 +284,16 @@ export default function StaticTrainer({
           >
             <Icon name="stop" />
             End
-          </button>
+          </Button>
         </div>
       </StageControls>
+      {steps.length > 0 && (
+        <HanonProgress
+          step={steps[Math.min(view.index, steps.length - 1)]}
+          total={hanon.queue.length}
+          repeat={hanon.repeat}
+        />
+      )}
       <div className={s.stageHud} aria-label="Run status">
         <div>
           <span>{endless ? 'Remaining' : 'Active time'}</span>
@@ -275,7 +303,7 @@ export default function StaticTrainer({
           <span>Groups</span>
           <strong>
             {view.index}
-            {!endless && <small>/ 32</small>}
+            {!endless && <small>/ {view.groups.length}</small>}
           </strong>
         </div>
         <div>
@@ -319,7 +347,7 @@ export default function StaticTrainer({
                   style={laneStyle(colors[lane])}
                   data-held={status === 'running' && view.held.has(lane)}
                 >
-                  {group?.includes(lane) && <i />}
+                  {index >= view.index && group?.includes(lane) && <i />}
                 </span>
               ))}
             </div>

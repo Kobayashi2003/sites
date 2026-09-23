@@ -1,52 +1,45 @@
 import { fingers, keyLabel } from '../../model/training';
 import type { Result } from '../../model/training';
+import type { RecordConfiguration } from '../../model/records';
+import {
+  matchingRecords,
+  bestRecord,
+  practiceRating,
+  ratingText,
+} from '../../engine/records';
+import type { Rating } from '../../engine/records';
 import {
   laneStyle,
   usePracticeAppearance,
 } from '../../features/settings/PracticeAppearance';
 import Icon from '../ui/Icon';
 import { focusPanelToggle } from './focusPanelToggle';
-import s from '../../styles.module.css';
+import s from './PracticeGuide.module.css';
 
 type Format = 'falling' | 'static';
 type Challenge = 'standard' | 'endless';
 
-/** One comparable number per run; `higher` says which direction is better. */
-function metric(format: Format, challenge: Challenge) {
-  if (format === 'static')
-    return challenge === 'endless'
-      ? {
-          label: 'Groups',
-          higher: true,
-          value: (r: Result) => r.hits,
-          text: (n: number) => `${n}`,
-        }
-      : {
-          label: 'Time',
-          higher: false,
-          value: (r: Result) => r.durationMs ?? Infinity,
-          text: (n: number) => `${(n / 1000).toFixed(2)}s`,
-        };
-  // Records saved before scoring existed have no score and are skipped.
-  return {
-    label: 'Score',
-    higher: true,
-    value: (r: Result) => r.score ?? NaN,
-    text: (n: number) => n.toLocaleString('en-US'),
-  };
-}
-
-function sharedFingers(mapping: number[]) {
-  const shared = fingers.filter(
-    (_, finger) => mapping.filter((m) => m === finger).length > 1,
+function RatingValue({ rating }: { rating: Rating | null }) {
+  if (!rating) return <>—</>;
+  const number = rating.value.toLocaleString('en-US', {
+    maximumFractionDigits: 2,
+  });
+  return (
+    <span className={s.ratingValue} aria-label={ratingText(rating)}>
+      <span className={s.ratingNumber} aria-hidden="true">
+        {number}
+      </span>
+      <span className={s.ratingUnit} aria-hidden="true">
+        {rating.unit}
+      </span>
+    </span>
   );
-  if (!shared.length) return 'Every lane has its own finger.';
-  return `${shared.join(' and ')} ${shared.length > 1 ? 'cover' : 'covers'} more than one key.`;
 }
 
 export default function PracticeGuide({
   keys,
   mapping,
+  configuration,
   description,
   format,
   challenge,
@@ -60,6 +53,7 @@ export default function PracticeGuide({
 }: {
   keys: string[];
   mapping: number[];
+  configuration: RecordConfiguration;
   description: string;
   format: Format;
   challenge: Challenge;
@@ -74,22 +68,14 @@ export default function PracticeGuide({
   const {
     preferences: { colors },
   } = usePracticeAppearance();
-  const measure = metric(format, challenge);
-  const runs = history.filter(
-    (r) =>
-      r.mode === mode &&
-      (r.format ?? 'falling') === format &&
-      (r.challenge ?? 'standard') === challenge,
-  );
-  const values = runs.map(measure.value).filter(Number.isFinite);
-  const best = values.length
-    ? (measure.higher ? Math.max : Math.min)(...values)
-    : null;
-  const last = runs.length ? measure.value(runs[0]) : null;
+  const runs = matchingRecords(history, configuration);
+  const best = bestRecord(runs);
+  const last = runs[0];
   return (
     <aside
       id="dextra-guide"
       className={s.practiceGuide}
+      data-dextra-guide
       aria-label="Practice guide"
       data-collapsed={collapsed}
     >
@@ -138,22 +124,22 @@ export default function PracticeGuide({
         </h2>
         <dl className={s.statGrid}>
           <div>
-            <dt>Best {measure.label.toLowerCase()}</dt>
-            <dd>{best === null ? '—' : measure.text(best)}</dd>
+            <dt>Personal best</dt>
+            <dd>
+              <RatingValue rating={best ? practiceRating(best) : null} />
+            </dd>
           </div>
           <div>
             <dt>Last run</dt>
             <dd>
-              {last === null || !Number.isFinite(last)
-                ? '—'
-                : measure.text(last)}
+              <RatingValue rating={last ? practiceRating(last) : null} />
             </dd>
           </div>
         </dl>
         {runs.length > 0 ? (
           <ol className={s.recentRuns} aria-label="Recent runs">
             {runs.slice(0, 3).map((r, i) => {
-              const value = measure.value(r);
+              const value = practiceRating(r);
               return (
                 <li key={`${r.date}-${i}`}>
                   <span>
@@ -165,7 +151,7 @@ export default function PracticeGuide({
                     })}
                   </span>
                   <strong>
-                    {Number.isFinite(value) ? measure.text(value) : '—'}
+                    <RatingValue rating={value} />
                   </strong>
                 </li>
               );
@@ -178,7 +164,7 @@ export default function PracticeGuide({
           </p>
         )}
         <button className={s.guideLink} onClick={onHistory}>
-          All history <span aria-hidden="true">↗</span>
+          Configuration history <span aria-hidden="true">↗</span>
         </button>
       </section>
       <section className={s.guideCard}>
@@ -192,7 +178,17 @@ export default function PracticeGuide({
             </li>
           ))}
         </ul>
-        <p>Six lanes, five fingers. {sharedFingers(mapping)}</p>
+        <p>
+          Six lanes, five fingers.{' '}
+          {(() => {
+            const shared = fingers.filter(
+              (_, finger) =>
+                mapping.filter((mapped) => mapped === finger).length > 1,
+            );
+            if (!shared.length) return 'Every lane has its own finger.';
+            return `${shared.join(' and ')} ${shared.length > 1 ? 'cover' : 'covers'} more than one key.`;
+          })()}
+        </p>
         <button className={s.guideLink} onClick={onSettings}>
           Customize your layout <span aria-hidden="true">↗</span>
         </button>

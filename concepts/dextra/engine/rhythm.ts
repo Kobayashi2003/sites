@@ -1,3 +1,5 @@
+import { defaultHanon, hanonSteps, hanonInterval } from './hanon.ts';
+import type { HanonConfig } from './hanon.ts';
 export const HIT_WINDOW = 100;
 export const PERFECT_WINDOW = 50;
 export const LEAD_IN = 3000;
@@ -34,6 +36,13 @@ export function notePosition(at: number, elapsed: number, speed = 1) {
   return (1 - ((at - elapsed) * speed) / TRAVEL_TIME) * HIT_LINE;
 }
 export const programs = [
+  {
+    id: 'hanon',
+    name: 'Hanon sequence',
+    tag: 'FLUENCY',
+    description:
+      'Deliberate eight-note patterns, ascending and descending. Keep each finger relaxed and each transition even.',
+  },
   {
     id: 'random',
     name: 'Random',
@@ -132,6 +141,7 @@ export function createRhythm(
   program: ProgramId = 'mixed',
   windows = { perfect: PERFECT_WINDOW, good: HIT_WINDOW },
   lives = 0,
+  hanon: HanonConfig = defaultHanon,
 ): RhythmState {
   const sequence = [0, 2, 1, 3, 2, 4, 3, 5, 1, 4, 0, 5];
   const pairs = [
@@ -191,6 +201,15 @@ export function createRhythm(
       offsets: {},
     })),
   };
+  if (program === 'hanon' && !state.survival) {
+    state.notes = hanonSteps(hanon).map((step, i) => ({
+      id: i,
+      at: LEAD_IN + i * hanonInterval(bpm, hanon.division),
+      lanes: step.lanes,
+      grade: 'pending',
+      offsets: {},
+    }));
+  }
   if (!state.survival) state.maxScore = chartMaxScore(state.notes);
   return state;
 }

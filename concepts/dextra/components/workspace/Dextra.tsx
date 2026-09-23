@@ -1,14 +1,26 @@
 'use client';
 import ResizableDivider from './ResizableDivider';
+import {
+  defaultHanon,
+  hanonNoteCount,
+  validHanon,
+  hanonInterval,
+} from '../../engine/hanon';
+import type { HanonConfig } from '../../engine/hanon';
+import type { RecordConfiguration } from '../../model/records';
+import { chartFingerprint, validConfiguration } from '../../engine/records';
+import HistoryPanel from '../../features/history/HistoryPanel';
 import { usePanelWidths } from '../../hooks/usePanelWidths';
 import type { CSSProperties } from 'react';
 
 import { PracticeAppearance } from '../../features/settings/PracticeAppearance';
 import useFullscreen from '../../hooks/useFullscreen';
 import { StageContext } from './StageContext';
-import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Icon from '../ui/Icon';
+import Button from '../ui/Button';
+import PanelSection from '../ui/PanelSection';
+import CountBadge from '../ui/CountBadge';
 import { lockScroll } from '../../lib/lockScroll';
 import Select from '../ui/Select';
 import StaticTrainer from '../../features/static/StaticTrainer';
@@ -28,7 +40,8 @@ import {
   timeOptions,
 } from '../../model/training';
 import type { Result, Status } from '../../model/training';
-import s from '../../styles.module.css';
+import base from '../../styles.module.css';
+import s from './Dextra.module.css';
 
 import LibraryPanel from '../../features/library/LibraryPanel';
 import SettingsPanel from '../../features/settings/SettingsPanel';
@@ -36,8 +49,13 @@ import ResultDetails from '../../features/results/ResultDetails';
 import PracticeGuide from './PracticeGuide';
 import IntroCurtain from './IntroCurtain';
 import { focusPanelToggle } from './focusPanelToggle';
+import WorkspaceHeader from './WorkspaceHeader';
+import type { Theme } from './WorkspaceHeader';
 
 type Drawer = 'library' | 'settings' | 'history' | null;
+const SETTINGS_KEY = 'dextra-settings';
+const LEGACY_SETTINGS_KEY = 'dextra-v1';
+const LEGACY_THEME_KEY = 'dextra-theme';
 function validResult(value: unknown): value is Result {
   if (!value || typeof value !== 'object') return false;
   const r = value as Result;
@@ -45,6 +63,7 @@ function validResult(value: unknown): value is Result {
     typeof r.mode === 'string' &&
     typeof r.date === 'string' &&
     Number.isFinite(Date.parse(r.date)) &&
+    (r.hanon === undefined || validHanon(r.hanon)) &&
     [r.accuracy, r.hits, r.total, r.bpm].every(Number.isFinite)
   );
 }
@@ -75,6 +94,7 @@ function Workspace() {
   const [format, setFormat] = useState<'falling' | 'static'>('falling');
   const [windows, setWindows] = useState({ perfect: 50, good: 100 });
   const [program, setProgram] = useState<ProgramId>('mixed');
+  const [hanon, setHanon] = useState<HanonConfig>(defaultHanon);
   const [revision, setRevision] = useState(0);
   const [status, setStatus] = useState<Status>('idle');
   const library = useSongLibrary();
@@ -95,13 +115,14 @@ function Workspace() {
   const [playback, setPlayback] = useState<HTMLDivElement | null>(null);
   const [statusSlot, setStatusSlot] = useState<HTMLDivElement | null>(null);
   const [history, setHistory] = useState<Result[]>([]);
+  const [historyScope, setHistoryScope] = useState('all');
   const [result, setResult] = useState<Result | null>(null);
   const [drawer, setDrawer] = useState<Drawer>(null);
   const [capture, setCapture] = useState<number | null>(null);
   const [notice, setNotice] = useState(
     'Select a key, then press its replacement.',
   );
-  const [theme, setTheme] = useState<'system' | 'light' | 'dark'>('system');
+  const [theme, setTheme] = useState<Theme>('system');
   const [loaded, setLoaded] = useState(false);
   const backdropPress = useRef(false);
   const dialog = useRef<HTMLDialogElement | null>(null);
@@ -110,6 +131,8 @@ function Workspace() {
   const selected = programs.find(
     (p) => p.id === (challenge === 'endless' ? 'random' : program),
   )!;
+  const isHanon = !song && selected.id === 'hanon';
+  const hanonCount = hanonNoteCount(hanon);
   const difficultyLabel = DIFFICULTIES.find((d) => d.id === difficulty)!.label;
   const songSession = useMemo<SongSession | null>(
     () =>
@@ -137,6 +160,52 @@ function Workspace() {
       setOffset: setAudioOffset,
     }),
     [songVolume, audioOffset],
+  );
+  const songChartId = useMemo(
+    () => (songSession ? chartFingerprint(songSession.notes) : ''),
+    [songSession],
+  );
+  const currentConfiguration = useMemo<RecordConfiguration>(
+    () => ({
+      version: 1,
+      exercise: song ? `song:${song.id}` : selected.id,
+      format,
+      challenge,
+      direction,
+      keys: [...keys],
+      mapping: [...mapping],
+      bpm: song?.bpm ?? initialBpm,
+      limit: format === 'static' ? timeLimit : lives,
+      windows: { ...windows },
+      hanon: isHanon ? hanon : undefined,
+      song: song
+        ? {
+            id: song.id,
+            difficulty,
+            gridOffset: song.offset,
+            audioOffset,
+            chart: songChartId,
+          }
+        : undefined,
+    }),
+    [
+      song,
+      selected.id,
+      format,
+      challenge,
+      direction,
+      keys,
+      mapping,
+      initialBpm,
+      timeLimit,
+      lives,
+      windows,
+      isHanon,
+      hanon,
+      difficulty,
+      audioOffset,
+      songChartId,
+    ],
   );
   /** The trainer is keyed by difficulty, so any change starts from idle. */
   const changeDifficulty = useCallback((next: Difficulty) => {
@@ -174,6 +243,7 @@ function Workspace() {
     [library],
   );
   const openDrawer = useCallback((next: Exclude<Drawer, null>) => {
+    if (next === 'history') setHistoryScope('all');
     setStatus((value) => (value === 'running' ? 'paused' : value));
     setCapture(null);
     setDrawer(next);
@@ -199,27 +269,54 @@ function Workspace() {
     setStatus(value);
     if (value === 'running') setResult(null);
   }, []);
-  const complete = useCallback((value: Result) => {
-    const commit = () => {
-      setHistory((rows) => [value, ...rows]);
-      setResult(value);
-      setStatus('done');
-      requestAnimationFrame(() =>
-        resultPanel.current?.focus({ preventScroll: true }),
-      );
-    };
-    if (document.fullscreenElement)
-      void document.exitFullscreen().then(commit, commit);
-    else commit();
-  }, []);
+  const complete = useCallback(
+    (value: Result) => {
+      const record: Result = {
+        ...value,
+        id: crypto.randomUUID(),
+        configuration: currentConfiguration,
+      };
+      const commit = () => {
+        setHistory((rows) => [record, ...rows]);
+        setResult(record);
+        setStatus('done');
+        requestAnimationFrame(() =>
+          resultPanel.current?.focus({ preventScroll: true }),
+        );
+      };
+      if (document.fullscreenElement)
+        void document.exitFullscreen().then(commit, commit);
+      else commit();
+    },
+    [currentConfiguration],
+  );
   async function again() {
     if (!result) return;
+    const configuration = validConfiguration(result.configuration)
+      ? result.configuration
+      : undefined;
+    if (configuration) {
+      setKeys([...configuration.keys]);
+      setMapping([...configuration.mapping]);
+    }
     if (result.songId) {
       if (result.difficulty) setDifficulty(result.difficulty);
       if (result.direction) setDirection(result.direction);
       if (result.windows) setWindows(result.windows);
       if (song?.id !== result.songId && !(await loadSong(result.songId)))
         return;
+      if (configuration?.song) {
+        setAudioOffset(configuration.song.audioOffset);
+        setSong((current) =>
+          current
+            ? {
+                ...current,
+                bpm: configuration.bpm,
+                offset: configuration.song!.gridOffset,
+              }
+            : current,
+        );
+      }
       setResult(null);
       setRevision((n) => n + 1);
       setStatus('running');
@@ -228,6 +325,7 @@ function Workspace() {
     setSong(null);
     const match = programs.find((p) => p.name === result.mode);
     setProgram(match?.id ?? 'mixed');
+    if (validHanon(result.hanon)) setHanon(result.hanon);
     setFormat(result.format ?? 'falling');
     setDirection(result.direction ?? 'down');
     setChallenge(result.challenge ?? 'standard');
@@ -249,11 +347,24 @@ function Workspace() {
     queueMicrotask(() => {
       if (cancelled) return;
       try {
-        const saved = JSON.parse(localStorage.getItem('dextra-v1') || 'null');
-        const savedTheme = localStorage.getItem('dextra-theme');
-        if (savedTheme === 'dark' || savedTheme === 'light')
-          setTheme(savedTheme);
+        const raw =
+          localStorage.getItem(SETTINGS_KEY) ??
+          localStorage.getItem(LEGACY_SETTINGS_KEY);
+        const savedTheme = localStorage.getItem(LEGACY_THEME_KEY);
+        localStorage.removeItem(LEGACY_SETTINGS_KEY);
+        localStorage.removeItem(LEGACY_THEME_KEY);
+        const saved = JSON.parse(raw || 'null');
+        const storedTheme = saved?.theme ?? savedTheme;
+        if (['system', 'dark', 'light'].includes(storedTheme))
+          setTheme(storedTheme);
         if (saved) {
+          if (validHanon(saved.hanon)) setHanon(saved.hanon);
+          if (
+            Number.isFinite(saved.initialBpm) &&
+            saved.initialBpm >= 20 &&
+            saved.initialBpm <= 240
+          )
+            setInitialBpm(saved.initialBpm);
           if (
             Array.isArray(saved.keys) &&
             saved.keys.length === 6 &&
@@ -291,11 +402,7 @@ function Workspace() {
             saved.windows.perfect <= saved.windows.good &&
             saved.windows.good <= 250
           )
-            setWindows(
-              saved.timingVersion === 2
-                ? saved.windows
-                : { perfect: 50, good: 100 },
-            );
+            setWindows(saved.windows);
           if (programs.some((p) => p.id === saved.program))
             setProgram(saved.program);
           if (['easy', 'normal', 'hard'].includes(saved.difficulty))
@@ -314,7 +421,14 @@ function Workspace() {
           if (typeof saved.songId === 'string')
             restoreSong.current = saved.songId;
           if (Array.isArray(saved.history)) {
-            const rows = saved.history.filter(validResult);
+            const rows = saved.history
+              .filter(validResult)
+              .map((row: Result) => ({
+                ...row,
+                configuration: validConfiguration(row.configuration)
+                  ? row.configuration
+                  : undefined,
+              }));
             setHistory(rows);
           }
         }
@@ -331,15 +445,17 @@ function Workspace() {
     if (!loaded) return;
     try {
       localStorage.setItem(
-        'dextra-v1',
+        SETTINGS_KEY,
         JSON.stringify({
           keys,
           mapping,
           history,
           program,
+          hanon,
+          initialBpm,
           format,
           windows,
-          timingVersion: 2,
+          theme,
           direction,
           challenge,
           timeLimit,
@@ -350,7 +466,8 @@ function Workspace() {
           audioOffset,
         }),
       );
-      localStorage.setItem('dextra-theme', theme);
+      localStorage.removeItem(LEGACY_SETTINGS_KEY);
+      localStorage.removeItem(LEGACY_THEME_KEY);
     } catch {
       /* Training remains available without storage. */
     }
@@ -360,6 +477,8 @@ function Workspace() {
     mapping,
     history,
     program,
+    hanon,
+    initialBpm,
     theme,
     format,
     windows,
@@ -416,6 +535,7 @@ function Workspace() {
     return () => window.removeEventListener('keydown', down);
   }, [capture, keys]);
   function loadProgram(id: ProgramId) {
+    if (id !== 'hanon') setInitialBpm((v) => Math.max(30, Math.min(150, v)));
     setSong(null);
     setResult(null);
     setChallenge('standard');
@@ -426,36 +546,19 @@ function Workspace() {
   }
   return (
     <div
-      className={`${s.root} ${s.practiceApp}`}
+      className={`${base.root} ${s.practiceApp}`}
+      data-dextra-root
       data-ready={loaded}
       data-theme={theme}
     >
       <IntroCurtain ready={loaded} />
-      <header className={s.appHeader}>
-        <Link href="/concepts/dextra" className={s.appBrand}>
-          <span aria-hidden="true">≋</span>
-          <strong>
-            DEXTRA<span className={s.brandSuffix}> / SIX</span>
-          </strong>
-        </Link>
-        <span className={s.appIdentity}>LEFT-HAND RHYTHM STUDIO</span>
-        <div className={s.appActions}>
-          <Select
-            label="Color theme"
-            value={theme}
-            options={[
-              { value: 'system', label: 'System' },
-              { value: 'light', label: 'Light' },
-              { value: 'dark', label: 'Dark' },
-            ]}
-            onChange={(v) => setTheme(v as typeof theme)}
-          />
-          <button onClick={() => openDrawer('history')}>
-            History <span className={s.countBadge}>{history.length}</span>
-          </button>
-          <button onClick={() => openDrawer('settings')}>Settings</button>
-        </div>
-      </header>
+      <WorkspaceHeader
+        theme={theme}
+        historyCount={history.length}
+        onThemeChange={setTheme}
+        onHistory={() => openDrawer('history')}
+        onSettings={() => openDrawer('settings')}
+      />
       <StageContext.Provider
         value={{
           controls,
@@ -533,9 +636,19 @@ function Workspace() {
                               ? format === 'static'
                                 ? `${timeLimit}s timed`
                                 : `${lives} ${lives === 1 ? 'life' : 'lives'}`
-                              : '32 groups'
+                              : isHanon
+                                ? `${hanonCount} notes · ${hanon.queue.length} studies`
+                                : '32 groups'
                           }`}
                     </p>
+                    {isHanon && (
+                      <p>
+                        1/{hanon.division} notes · {hanon.repeat}× per direction
+                        {format === 'falling'
+                          ? ` · ≈${Math.ceil((hanonCount * hanonInterval(initialBpm, hanon.division)) / 1000)}s`
+                          : ''}
+                      </p>
+                    )}
                     {songNotice && (
                       <output className={s.motionNote}>{songNotice}</output>
                     )}
@@ -562,13 +675,7 @@ function Workspace() {
                     </button>
                   )}
                 </section>
-                <section
-                  className={s.panelSection}
-                  aria-labelledby="panel-setup"
-                >
-                  <h3 className={s.panelHeading} id="panel-setup">
-                    Setup
-                  </h3>
+                <PanelSection id="panel-setup" title="Setup">
                   <div className={s.formatBar} aria-label="Practice format">
                     {(['falling', 'static'] as const).map((value) => (
                       <button
@@ -628,7 +735,7 @@ function Workspace() {
                                 : 'heart'
                           }
                           value={challenge}
-                          disabled={busy}
+                          disabled={busy || isHanon}
                           options={[
                             { value: 'standard', label: 'Standard' },
                             {
@@ -693,7 +800,7 @@ function Workspace() {
                       }}
                     />
                   </div>
-                </section>
+                </PanelSection>
                 <div ref={setControls} hidden={!!result} />
               </div>
               <div className={s.controlFooter}>
@@ -727,8 +834,7 @@ function Workspace() {
                         onClick={() => openDrawer('history')}
                       >
                         <Icon name="history" />
-                        History{' '}
-                        <span className={s.countBadge}>{history.length}</span>
+                        History <CountBadge>{history.length}</CountBadge>
                       </button>
                     </>
                   )}
@@ -748,9 +854,11 @@ function Workspace() {
               <div className={s.trainerHost} hidden={!!result}>
                 {format === 'falling' ? (
                   <FallingTrainer
+                    onBpm={setInitialBpm}
+                    hanon={hanon}
                     initialBpm={initialBpm}
                     windows={windows}
-                    key={`${song?.id ?? program}-${difficulty}-${revision}`}
+                    key={`${song?.id ?? program}-${difficulty}-${revision}-${loaded}`}
                     song={songSession}
                     songAudio={songAudio}
                     direction={direction}
@@ -765,6 +873,7 @@ function Workspace() {
                   />
                 ) : (
                   <StaticTrainer
+                    hanon={hanon}
                     key={`${program}-${revision}`}
                     direction={direction}
                     challenge={challenge}
@@ -797,31 +906,24 @@ function Workspace() {
                         : 'Out of lives'
                       : 'Chart complete'}
                   </p>
-                  <ResultDetails result={result} />
+                  <ResultDetails result={result} history={history} />
                   <div className={s.resultActions}>
-                    <button
-                      className={s.startButton}
-                      disabled={busy}
-                      onClick={() => void again()}
-                    >
+                    <Button tone="primary" onClick={() => void again()}>
                       <Icon name="retry" />
-                      Again
-                    </button>
-                    <button
-                      className={s.endButton}
+                      {busy ? 'End & retry' : 'Again'}
+                    </Button>
+                    <Button
+                      tone="danger"
                       onClick={() => {
                         setResult(null);
                         setStatus((v) => (v === 'done' ? 'idle' : v));
                       }}
                     >
                       Practice
-                    </button>
-                    <button
-                      className={s.endButton}
-                      onClick={() => openDrawer('history')}
-                    >
+                    </Button>
+                    <Button tone="danger" onClick={() => openDrawer('history')}>
                       History
-                    </button>
+                    </Button>
                   </div>
                 </section>
               )}
@@ -838,6 +940,7 @@ function Workspace() {
             <PracticeGuide
               keys={keys}
               mapping={mapping}
+              configuration={currentConfiguration}
               description={
                 songSession
                   ? `An imported song on ${difficultyLabel}: ${songSession.notes.length} notes on a ${Math.round(songSession.bpm)} BPM grid, generated from its strongest onsets. Low hits favour the outer keys.`
@@ -849,7 +952,10 @@ function Workspace() {
               history={history}
               collapsed={collapsed.right}
               onCollapse={(open) => togglePanel('right', open)}
-              onHistory={() => openDrawer('history')}
+              onHistory={() => {
+                openDrawer('history');
+                setHistoryScope('current');
+              }}
               onSettings={() => openDrawer('settings')}
               onLibrary={() => openDrawer('library')}
             />
@@ -917,11 +1023,18 @@ function Workspace() {
                   setDrawer(null);
                 }}
               >
-                ×
+                <Icon name="close" />
               </button>
             </div>
             {drawer === 'library' && (
               <LibraryPanel
+                hanon={hanon}
+                keys={keys}
+                onLoadHanon={(config) => {
+                  setHanon(config);
+                  if (!isHanon) setInitialBpm(75);
+                  loadProgram('hanon');
+                }}
                 busy={busy}
                 challenge={challenge}
                 program={program}
@@ -958,6 +1071,21 @@ function Workspace() {
                 }
               />
             )}
+            {drawer === 'history' && (
+              <HistoryPanel
+                history={history}
+                current={currentConfiguration}
+                initialScope={historyScope}
+                onReview={(record) => {
+                  setResult(record);
+                  setDrawer(null);
+                  requestAnimationFrame(() => {
+                    resultPanel.current?.scrollIntoView({ block: 'start' });
+                    resultPanel.current?.focus();
+                  });
+                }}
+              />
+            )}
             {drawer === 'settings' && (
               <SettingsPanel
                 theme={theme}
@@ -975,71 +1103,6 @@ function Workspace() {
                 setNotice={setNotice}
                 setStatus={setStatus}
               />
-            )}
-            {drawer === 'history' && (
-              <>
-                <p className={s.drawerIntro}>
-                  {history.length} completed sessions on this device. Select a
-                  record to review its result in Practice.
-                </p>
-                {history.length === 0 ? (
-                  <div className={s.reviewEmpty}>
-                    <p>Your first completed run will appear here.</p>
-                  </div>
-                ) : (
-                  <div className={s.recordList}>
-                    {history.map((r, i) => (
-                      <button
-                        key={`${r.date}-${i}`}
-                        onClick={() => {
-                          setResult(r);
-                          setDrawer(null);
-                          requestAnimationFrame(() => {
-                            resultPanel.current?.scrollIntoView({
-                              block: 'start',
-                            });
-                            resultPanel.current?.focus();
-                          });
-                        }}
-                      >
-                        <span>
-                          <strong>{r.mode}</strong>
-                          <small>
-                            {r.challenge === 'endless'
-                              ? r.format === 'static'
-                                ? `${r.limit}s timed · `
-                                : `${r.limit} lives · `
-                              : ''}
-                            {new Date(r.date).toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}{' '}
-                            ·{' '}
-                            {r.format === 'static'
-                              ? `Static · ${r.errorRate ?? 0}% errors`
-                              : r.songId
-                                ? `Song · ${DIFFICULTIES.find((d) => d.id === r.difficulty)?.label ?? 'Normal'} · ${r.bpm} BPM`
-                                : `${r.bpm} BPM · Falling`}
-                          </small>
-                        </span>
-                        <b>
-                          {r.rank && <i className={s.rankBadge}>{r.rank}</i>}
-                          {r.format === 'static'
-                            ? r.challenge === 'endless'
-                              ? `${r.hits} groups`
-                              : `${((r.durationMs ?? 0) / 1000).toFixed(2)}s`
-                            : r.score !== undefined
-                              ? r.score.toLocaleString('en-US')
-                              : `${r.accuracy}%`}
-                          <span aria-hidden="true">↗</span>
-                        </b>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </>
             )}
           </dialog>
         </main>

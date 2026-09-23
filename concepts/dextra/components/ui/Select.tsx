@@ -4,8 +4,8 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import Icon from './Icon';
 import type { IconName } from './Icon';
-import s from '../../styles.module.css';
-type Option = { value: string; label: string };
+import s from './Select.module.css';
+type Option = { value: string; label: string; disabled?: boolean };
 export default function Select({
   label,
   value,
@@ -46,16 +46,16 @@ export default function Select({
       window.removeEventListener('resize', dismiss);
     };
   }, [open]);
-  // Fixed positioning escapes the scrolling side panels that used to clip
-  // the menu; the measured width keeps it inside the viewport.
+  // Fixed positioning escapes scrolling side panels. The trigger is the
+  // menu's width contract so controls stay visually aligned across the app.
   useLayoutEffect(() => {
     if (!open || !trigger.current || !menu.current) return;
     const box = trigger.current.getBoundingClientRect();
-    const width = Math.max(box.width, menu.current.offsetWidth);
     const gutter = 8;
+    const width = Math.min(box.width, window.innerWidth - gutter * 2);
     setPlace({
       position: 'fixed',
-      minWidth: box.width,
+      width,
       left: Math.max(
         gutter,
         Math.min(box.left, window.innerWidth - width - gutter),
@@ -88,6 +88,7 @@ export default function Select({
     <div
       ref={root}
       className={s.selectControl}
+      data-select-control
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false);
       }}
@@ -143,7 +144,7 @@ export default function Select({
             }
             const buttons = Array.from(
               e.currentTarget.querySelectorAll<HTMLButtonElement>(
-                '[role="option"]',
+                '[role="option"]:not(:disabled)',
               ),
             );
             const index = buttons.indexOf(
@@ -156,8 +157,11 @@ export default function Select({
             else if (e.key === 'Home') next = 0;
             else if (e.key === 'End') next = buttons.length - 1;
             else if (e.key.length === 1) {
-              const found = options.findIndex((o) =>
-                o.label.toLowerCase().startsWith(e.key.toLowerCase()),
+              const found = buttons.findIndex((button) =>
+                button.textContent
+                  ?.trim()
+                  .toLowerCase()
+                  .startsWith(e.key.toLowerCase()),
               );
               if (found >= 0) next = found;
               else return;
@@ -172,6 +176,8 @@ export default function Select({
               tabIndex={-1}
               role="option"
               aria-selected={value === o.value}
+              aria-disabled={o.disabled || undefined}
+              disabled={o.disabled}
               key={o.value}
               onClick={() => choose(o.value)}
             >

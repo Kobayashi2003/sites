@@ -1,0 +1,33 @@
+.button {
+  min-width: 0;
+}
+
+:global([data-dextra-root]) .primary {
+  min-width: 90px;
+  border-color: var(--orange);
+  background: var(--orange);
+  color: var(--on-orange);
+  font-weight: var(--weight-semibold);
+}
+
+:global([data-dextra-root]) .primary:hover,
+:global([data-dextra-root]) .primary:focus-visible {
+  border-color: var(--orange);
+  background: var(--orange);
+  color: var(--on-orange);
+  filter: brightness(1.08);
+}
+
+:global([data-dextra-root]) .primary:hover {
+  box-shadow: 0 6px 16px -8px var(--orange);
+}
+
+:global([data-dextra-root]) .danger {
+  color: var(--subtle);
+}
+
+:global([data-dextra-root]) .danger:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+  color: var(--danger);
+}
