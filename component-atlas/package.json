@@ -1,0 +1,43 @@
+{
+  "name": "component-atlas",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@12.10.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "postinstall": "node scripts/link-library.mjs",
+    "link:library": "node scripts/link-library.mjs",
+    "dev": "node scripts/link-library.mjs && vite",
+    "build": "node scripts/link-library.mjs && tsc -b && vite build",
+    "typecheck": "node scripts/link-library.mjs && tsc -b",
+    "lint": "node scripts/link-library.mjs && eslint . src/library",
+    "preview": "vite preview",
+    "format": "prettier --write . && prettier --write ../../components --ignore-path ../../components/.prettierignore",
+    "format:check": "prettier --check . && prettier --check ../../components --ignore-path ../../components/.prettierignore"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "eslint": "^10.9.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.5",
+    "globals": "^17.11.0",
+    "prettier": "^3.9.6",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vite": "^8.2.2"
+  }
+}

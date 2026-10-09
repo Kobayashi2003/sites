@@ -1,9 +1,12 @@
-# Project instructions
+# Sites
 
-- Keep the gallery and concept implementations separate.
-- Add each website concept under `concepts/<slug>` and register it explicitly in `concepts/catalog.ts`.
-- Use CSS Modules for concept-specific styles. Do not add concept selectors to `app/globals.css`.
-- Do not import code from one concept into another. Promote proven shared code to `components/` or `lib/` only when there are real consumers.
-- Keep new concepts in `draft` until responsive, keyboard, touch, reduced-motion, lint, and build checks pass.
-- Preserve the boundary between Site and Component Atlas: this repository holds complete site directions, not isolated effects or controls.
-- Follow `docs/CONCEPT-GUIDE.md` for authoring and acceptance criteria.
+One folder per website; see [README.md](README.md). Work inside the folder you
+are changing and follow its own `AGENTS.md`.
+
+- A site shown by Site Atlas follows `site-atlas/AGENTS.md` and
+  `site-atlas/docs/CONCEPT-GUIDE.md`, and is checked from `site-atlas/`
+  (`pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm build`).
+- Never edit through a gallery's junction (`component-atlas/src/library`,
+  `site-atlas/concepts/<slug>`) as if it were the gallery's own code; it is the
+  linked folder.
+- This file is the only agent instruction file; `CLAUDE.md` imports it.

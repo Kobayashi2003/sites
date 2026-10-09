@@ -1,0 +1,216 @@
+.setup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 22px;
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding: 32px 28px 48px;
+}
+.lockBanner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  grid-column: 1 / -1;
+  padding: 10px 10px 10px 16px;
+  border-radius: 10px;
+  background: var(--fill-strong);
+}
+.section {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: 22px 24px 24px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--sheet);
+}
+.section header {
+  display: grid;
+  gap: 6px;
+}
+.section h2 {
+  font-family: var(--font-display);
+  font-size: 23px;
+  font-stretch: 114%;
+  font-weight: 750;
+  line-height: 1.15;
+}
+.section header p {
+  max-width: 62ch;
+  color: var(--ink-2);
+  font-size: 14.5px;
+}
+.section > button {
+  justify-self: start;
+}
+.lanes {
+  display: grid;
+  gap: 10px;
+}
+.lanes li {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+.laneControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.laneControls > button {
+  flex: 1 1 190px;
+}
+.laneControls > button[aria-pressed='true'] {
+  border-color: var(--focus);
+  box-shadow: inset 0 0 0 1px var(--focus);
+}
+.fingerSelect select {
+  min-width: 150px;
+}
+.notice {
+  min-height: 22px;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.windowDiagram {
+  position: relative;
+  height: 62px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--display);
+}
+.windowDiagram span {
+  position: absolute;
+  top: 10px;
+  bottom: 24px;
+  border-radius: 3px;
+}
+.windowFar {
+  background: rgb(255 200 97 / 38%);
+}
+.windowPure {
+  background: rgb(147 169 255 / 60%);
+}
+.windowPlus {
+  background: rgb(127 233 255 / 85%);
+}
+.windowDiagram i {
+  position: absolute;
+  top: 6px;
+  bottom: 20px;
+  left: calc(50% - 1px);
+  width: 2px;
+  background: var(--display-ink);
+}
+.windowDiagram small {
+  position: absolute;
+  bottom: 3px;
+  padding: 0 8px;
+  color: var(--display-ink-2);
+  font-size: 12px;
+}
+.windowLegend {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.colors {
+  display: grid;
+  gap: 12px;
+}
+.colors li {
+  display: grid;
+  grid-template-columns: 120px 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.colorLane {
+  font-size: 14px;
+  font-weight: 560;
+}
+.colors input[type='color'] {
+  width: 44px;
+  height: 34px;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  background: var(--sheet);
+  cursor: pointer;
+}
+
+.calibration {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--fill);
+}
+.calibration > p {
+  color: var(--ink-2);
+  font-size: 14.5px;
+}
+.beats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.beats i {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--rule);
+  border-radius: 50%;
+  transition:
+    background 80ms,
+    scale 80ms;
+}
+.beats i[data-warmup] {
+  border-style: dashed;
+}
+.beats i[data-past] {
+  border-color: var(--ink-3);
+  background: var(--ink-3);
+}
+.beats i[data-now] {
+  border-color: var(--ink);
+  background: var(--ink);
+  scale: 1.25;
+}
+.calibrationResult {
+  min-height: 24px;
+  font-size: 14.5px;
+}
+.calibrationActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 1040px) {
+  .setup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .setup {
+    padding: 24px 16px 40px;
+  }
+  .section {
+    padding: 18px 16px 20px;
+  }
+  .lanes li {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+  .colors li {
+    grid-template-columns: minmax(0, 1fr) 48px;
+  }
+  .colors li > :last-child {
+    grid-column: 1 / -1;
+  }
+}

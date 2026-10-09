@@ -1,0 +1,42 @@
+{
+  "name": "site",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "postinstall": "node scripts/link-sites.mjs",
+    "link:sites": "node scripts/link-sites.mjs",
+    "dev": "node scripts/link-sites.mjs && vinext dev --hostname 127.0.0.1 --port 19010",
+    "build": "node scripts/link-sites.mjs && vinext build",
+    "start": "vinext start --hostname 127.0.0.1 --port 19011",
+    "typecheck": "node scripts/link-sites.mjs && tsc --noEmit",
+    "lint": "node scripts/check.mjs lint",
+    "format": "node scripts/check.mjs format",
+    "format:check": "node scripts/check.mjs format:check"
+  },
+  "dependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "react-server-dom-webpack": "19.2.6",
+    "vinext": "1.0.0-beta.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitejs/plugin-rsc": "0.5.26",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vite": "8.0.13"
+  },
+  "type": "module"
+}

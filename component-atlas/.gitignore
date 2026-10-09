@@ -1,0 +1,9 @@
+node_modules
+dist
+.vite
+*.local
+.DS_Store
+
+
+# Junction to ../../components, made by scripts/link-library.mjs
+/src/library
