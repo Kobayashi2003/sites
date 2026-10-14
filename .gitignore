@@ -1,3 +1,6 @@
 node_modules
 .DS_Store
 .env*
+
+# Written by start.ps1 / gateway.ps1 while running
+.running.json

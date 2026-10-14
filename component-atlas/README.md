@@ -14,7 +14,8 @@ pnpm dev
 `pnpm install` links `src/library` to `../../components` with a directory
 junction (`scripts/link-library.mjs`); `dev`, `build`, `typecheck` and `lint` make
 sure the link exists first. The dev server listens on `http://127.0.0.1:19000`
-(see `PORTS.md` at the root of `Code/`).
+(see `PORTS.md` at the root of `Code/`). On Windows, `start.ps1` / `stop.ps1` start
+and stop it.
 
 Before finishing a change, run `pnpm typecheck`, `pnpm lint`, `pnpm format:check`
 and `pnpm build`. These cover the linked components too.
