@@ -1,11 +1,11 @@
-// Runs ESLint or Prettier over the atlas and every site in sites.json.
+// Runs ESLint, Prettier or Node tests over the atlas and every site in sites.json.
 // Neither tool follows a junction on its own: ESLint is given each
 // concepts/<slug> link, and Prettier (which refuses links) each site's real
 // folder, formatted with this project's config.
 //
-//   node scripts/check.mjs lint | format | format:check
+//   node scripts/check.mjs lint | format | format:check | test
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -44,5 +44,22 @@ if (mode === 'format' || mode === 'format:check') {
   );
 }
 
-console.error('Usage: node scripts/check.mjs lint | format | format:check');
+if (mode === 'test') {
+  // Sites keep Node tests beside the code they cover, as *.test.mjs.
+  const tests = sites.flatMap(([, folder]) =>
+    readdirSync(resolve(root, folder), { recursive: true })
+      .filter((file) => file.endsWith('.test.mjs'))
+      .filter((file) => !file.split(/[\\/]/).includes('node_modules'))
+      .map((file) => join(resolve(root, folder), file)),
+  );
+  if (!tests.length) {
+    console.log('No site tests found.');
+    process.exit(0);
+  }
+  process.exit(run(['--test', ...tests, ...extra]));
+}
+
+console.error(
+  'Usage: node scripts/check.mjs lint | format | format:check | test',
+);
 process.exit(1);

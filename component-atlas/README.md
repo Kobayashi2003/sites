@@ -14,7 +14,7 @@ pnpm dev
 `pnpm install` links `src/library` to `../../components` with a directory
 junction (`scripts/link-library.mjs`); `dev`, `build`, `typecheck` and `lint` make
 sure the link exists first. The dev server listens on `http://127.0.0.1:19000`
-(see `playround/app-gateway/PORTS.md`).
+(see `PORTS.md` at the root of `Code/`).
 
 Before finishing a change, run `pnpm typecheck`, `pnpm lint`, `pnpm format:check`
 and `pnpm build`. These cover the linked components too.
@@ -30,7 +30,7 @@ and `pnpm build`. These cover the linked components too.
 | `src/library/`                  | Junction to `../../components`; not tracked here       |
 | `scripts/link-library.mjs`      | Creates or repairs the junction                        |
 
-The catalog uses `#/`, `#/category/<category>`, and `#/entry/<category>/<slug>`. Metadata loads for the listing; demos and documentation load when an entry is opened.
+The catalog uses `#/`, `#/category/<category>`, and `#/entry/<category>/<slug>`. Metadata loads for the listing; demos and documentation load when an entry is opened. The home page searches every entry's title, summary, category and tags (`/` focuses the field), and a category page filters by any tag that two or more of its entries share.
 
 Categories are not registered here: every directory of the library with a
 `README.md` is one. How to add entries and categories is in

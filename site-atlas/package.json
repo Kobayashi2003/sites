@@ -14,7 +14,8 @@
     "typecheck": "node scripts/link-sites.mjs && tsc --noEmit",
     "lint": "node scripts/check.mjs lint",
     "format": "node scripts/check.mjs format",
-    "format:check": "node scripts/check.mjs format:check"
+    "format:check": "node scripts/check.mjs format:check",
+    "test": "node scripts/check.mjs test"
   },
   "dependencies": {
     "react": "19.2.6",

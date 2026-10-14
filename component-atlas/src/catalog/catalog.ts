@@ -86,6 +86,23 @@ export const entries: CatalogEntry[] = Object.entries(metadataModules)
   })
   .sort((a, b) => a.title.localeCompare(b.title));
 
+/** Entries whose title, summary, category or tags contain every word of the query. */
+export function searchEntries(query: string) {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  return entries.filter(entry => {
+    const text = [
+      entry.title,
+      entry.summary,
+      getCategory(entry.category)?.title ?? '',
+      ...entry.tags.map(tag => tag.label),
+    ]
+      .join(' ')
+      .toLowerCase();
+    return words.every(word => text.includes(word));
+  });
+}
+
 export function getCategory(id: string) {
   return categories.find(category => category.id === id);
 }

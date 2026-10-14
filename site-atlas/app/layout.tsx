@@ -1,19 +1,17 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist } from 'next/font/google';
 import './globals.css';
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: { default: 'Site Atlas', template: '%s · Site Atlas' },
   description:
-    'A working archive of complete website concepts and independent digital studies.',
+    'A gallery of complete website concepts, each running live in the page.',
+  icons: { icon: '/favicon.svg' },
 };
 
+// Runs before paint so a saved or system dark theme never flashes light.
 const themeScript = `
   try {
     const stored = localStorage.getItem('site-atlas-theme');
@@ -33,9 +31,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-      </body>
+      <body className={geist.variable}>{children}</body>
     </html>
   );
 }

@@ -1,6 +1,13 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { categories, getCategory, getCategoryEntries, getEntry } from './catalog/catalog';
+import {
+  categories,
+  entries,
+  getCategory,
+  getCategoryEntries,
+  getEntry,
+  searchEntries,
+} from './catalog/catalog';
 import type { CatalogEntry, CatalogTag, CategoryDefinition, TagGroup } from './catalog/types';
 import { applyTheme, type Theme } from './shared/theme';
 
@@ -187,6 +194,23 @@ function CapabilityList({ entry }: { entry: CatalogEntry }) {
 }
 
 function HomePage() {
+  const [query, setQuery] = useState('');
+  const search = useRef<HTMLInputElement>(null);
+  const results = searchEntries(query);
+  const searching = query.trim().length > 0;
+
+  // "/" jumps to the search field from anywhere on the page.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (event.key !== '/' || target.closest('input, textarea, [contenteditable]')) return;
+      event.preventDefault();
+      search.current?.focus();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <>
       <section className="hero">
@@ -202,14 +226,47 @@ function HomePage() {
 
       <section className="catalog-section">
         <div className="catalog-heading">
-          <h2>Browse by category</h2>
-          <p>Start with a category. Demos are loaded only when you open an entry.</p>
+          <h2>{searching ? 'Search results' : 'Browse by category'}</h2>
+          <label className="catalog-search">
+            <span className="sr-only">Search components</span>
+            <input
+              ref={search}
+              type="search"
+              value={query}
+              placeholder={`Search ${entries.length} components`}
+              onChange={event => setQuery(event.target.value)}
+              onKeyDown={event => {
+                if (event.key === 'Escape') setQuery('');
+              }}
+            />
+            <kbd aria-hidden="true">/</kbd>
+          </label>
         </div>
-        <div className="category-grid">
-          {categories.map(category => (
-            <CategoryCard key={category.id} category={category} />
-          ))}
-        </div>
+        {searching ? (
+          results.length ? (
+            <>
+              <p className="catalog-count" aria-live="polite">
+                {results.length} {results.length === 1 ? 'match' : 'matches'}
+              </p>
+              <div className="entry-grid">
+                {results.map(entry => (
+                  <EntryCard key={entry.key} entry={entry} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="empty-state" aria-live="polite">
+              <h2>Nothing matches “{query.trim()}”</h2>
+              <p>Try a shorter word, a category such as “input”, or a tag such as “canvas”.</p>
+            </div>
+          )
+        ) : (
+          <div className="category-grid">
+            {categories.map(category => (
+              <CategoryCard key={category.id} category={category} />
+            ))}
+          </div>
+        )}
       </section>
     </>
   );
@@ -226,7 +283,25 @@ function LoadingBlock({ label = 'Loading entry' }: { label?: string }) {
 
 function CategoryPage({ categoryId }: { categoryId: string }) {
   const category = getCategory(categoryId);
-  const categoryEntries = getCategoryEntries(categoryId);
+  const allEntries = getCategoryEntries(categoryId);
+  const [selected, setSelected] = useState<string[]>([]);
+  // Only tags that more than one entry shares help narrow the list.
+  const tagCounts = new Map<string, { tag: CatalogTag; count: number }>();
+  for (const entry of allEntries)
+    for (const tag of entry.tags) {
+      const seen = tagCounts.get(tag.id);
+      tagCounts.set(tag.id, { tag, count: (seen?.count ?? 0) + 1 });
+    }
+  const filters = [...tagCounts.values()]
+    .filter(({ count }) => count > 1)
+    .sort((a, b) => b.count - a.count || a.tag.label.localeCompare(b.tag.label));
+  const categoryEntries = allEntries.filter(entry =>
+    selected.every(id => entry.tags.some(tag => tag.id === id)),
+  );
+  const toggle = (id: string) =>
+    setSelected(current =>
+      current.includes(id) ? current.filter(tag => tag !== id) : [...current, id],
+    );
 
   if (!category) return <NotFound />;
 
@@ -239,8 +314,9 @@ function CategoryPage({ categoryId }: { categoryId: string }) {
         <div className="page-intro-row">
           <div>
             <span className="eyebrow">
-              {categoryEntries.length.toString().padStart(2, '0')}{' '}
-              {categoryEntries.length === 1 ? 'entry' : 'entries'}
+              {selected.length > 0 && `${categoryEntries.length} of `}
+              {allEntries.length.toString().padStart(2, '0')}{' '}
+              {allEntries.length === 1 ? 'entry' : 'entries'}
             </span>
             <h1>{category.title}</h1>
           </div>
@@ -248,6 +324,27 @@ function CategoryPage({ categoryId }: { categoryId: string }) {
         </div>
       </section>
       <section className="catalog-section">
+        {filters.length > 0 && (
+          <div className="tag-filter" role="group" aria-label="Filter by tag">
+            {filters.map(({ tag, count }) => (
+              <button
+                key={tag.id}
+                type="button"
+                className="tag"
+                data-group={tag.group}
+                aria-pressed={selected.includes(tag.id)}
+                onClick={() => toggle(tag.id)}
+              >
+                {tag.label} <span>{count}</span>
+              </button>
+            ))}
+            {selected.length > 0 && (
+              <button type="button" className="tag-filter-clear" onClick={() => setSelected([])}>
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
         {categoryEntries.length ? (
           <div className="entry-grid">
             {categoryEntries.map(entry => (
@@ -256,8 +353,12 @@ function CategoryPage({ categoryId }: { categoryId: string }) {
           </div>
         ) : (
           <div className="empty-state">
-            <h2>No entries yet</h2>
-            <p>New components will appear here.</p>
+            <h2>{allEntries.length ? 'No entry has all of these tags' : 'No entries yet'}</h2>
+            <p>
+              {allEntries.length
+                ? 'Remove a tag to widen the list.'
+                : 'New components will appear here.'}
+            </p>
           </div>
         )}
       </section>
@@ -404,7 +505,8 @@ export default function App() {
   let content;
 
   if (route.page === 'home') content = <HomePage />;
-  else if (route.page === 'category') content = <CategoryPage categoryId={route.category} />;
+  else if (route.page === 'category')
+    content = <CategoryPage key={route.category} categoryId={route.category} />;
   else {
     const entry = getEntry(route.category, route.slug);
     content = entry ? (
