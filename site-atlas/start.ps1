@@ -1,6 +1,7 @@
-# Starts the dev server on 19010, or with -Prod builds and serves production on 19011;
-# .\stop.ps1 stops it from another window.
-param([switch]$Prod)
+# Starts the dev server on 19010, or with -Prod serves the production build on 19011 (-Build builds
+# it first), and opens it in the browser (-NoBrowser to skip); .\stop.ps1 stops it from another
+# window.
+param([switch]$Prod, [switch]$Build, [switch]$NoBrowser)
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 $runFile = Join-Path $PSScriptRoot '.running.json'
@@ -13,9 +14,22 @@ if (Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyCon
 }
 node scripts/link-sites.mjs
 if ($LASTEXITCODE -ne 0) { throw 'Could not link the sites.' }
-if ($Prod) {
+if ($Build) {
     node node_modules/vinext/dist/cli.js build
     if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
+}
+if ($Prod -and -not (Test-Path dist)) { throw 'Not built. Run .\start.ps1 -Prod -Build.' }
+
+if (-not $NoBrowser) {
+    # Open the page once it answers; the job ends with this script.
+    $null = Start-ThreadJob -ArgumentList "http://127.0.0.1:$port/" -ScriptBlock {
+        param($url)
+        for ($i = 0; $i -lt 240; $i++) {
+            try { $null = Invoke-WebRequest $url -UseBasicParsing -TimeoutSec 2; Start-Process $url; return }
+            catch { if ($_.Exception.Response) { Start-Process $url; return } }
+            Start-Sleep -Milliseconds 500
+        }
+    }
 }
 
 $command = if ($Prod) { 'start' } else { 'dev' }

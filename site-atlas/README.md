@@ -17,8 +17,8 @@ pnpm install    # also creates the links
 pnpm dev        # http://127.0.0.1:19010
 ```
 
-On Windows, `start.ps1` / `stop.ps1` start and stop the dev server (`start.ps1 -Prod` builds and
-serves production on 19011).
+On Windows, `start.ps1` / `stop.ps1` start and stop the dev server and open it in the browser
+(`-NoBrowser` to skip); `start.ps1 -Prod -Build` builds and serves production on 19011.
 
 Before committing: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm build`. They cover
 the atlas and every linked site.
