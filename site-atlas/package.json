@@ -2,8 +2,9 @@
   "name": "site",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@12.10.1",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=24"
   },
   "scripts": {
     "postinstall": "node scripts/link-sites.mjs",

@@ -1,15 +1,12 @@
 # Sites
 
-Storage for websites, one folder each. Apps that listen take a slot in
-`19000–19999` ([PORTS.md](../PORTS.md)); a site shown through Site Atlas runs
-inside it and has none. Two of them are galleries:
+Websites, one folder each. Their ports are in [PORTS.md](PORTS.md). Two of them
+are galleries, and no site is listed in Site Atlas at the moment.
 
-| Folder | What it is | Ports |
-|---|---|---|
-| [component-atlas](component-atlas/) | Browser for `../components`, linked whole as `src/library` | 19000 Vite dev · 19001 Vite preview |
-| [site-atlas](site-atlas/) | Gallery of the sites here; each is linked in by `sites.json` | 19010 vinext dev · 19011 production server (`pnpm start`) |
-
-No site is listed in Site Atlas at the moment. Free slots: 19020 and up.
+| Project | What it does |
+|---|---|
+| [component-atlas](component-atlas/README.md) | Browser for `../components`, linked whole as `src/library` |
+| [site-atlas](site-atlas/README.md) | Gallery of the sites here; each is linked in by `sites.json` |
 
 Both galleries use Windows directory junctions (created by their `pnpm install`,
 refreshed by `dev`/`build`/`lint`) and do not track them, so the folders they show
